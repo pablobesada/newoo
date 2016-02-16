@@ -1,0 +1,13 @@
+<template name="infiniteExample">
+    TESTING<hr>
+    <ul>
+        {{#each items}}
+            <li>record: {{_id}}: {{number}}</li>
+        {{/each}}
+    </ul>
+    {{#if moreResults}}
+        <div id="showMoreResults" style="margin-left: 25px;">
+            <span class="loading">Loading...</span>
+        </div>
+    {{/if}}
+</template>

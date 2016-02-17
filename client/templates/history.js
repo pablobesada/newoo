@@ -1,4 +1,7 @@
-var record_fields = [
+
+var History = function() {}
+
+History.prototype.fieldDefinitions = record_fields = [
     ['_sync', 'integer'],
     ['collection', 'string'],
     ['timestamp', 'timestamp'],
@@ -8,7 +11,6 @@ var record_fields = [
     ['newRecord', 'object'],
 ];
 
-var eventHandler = {
-}
 
-registerRecord(History, 'histories', 'history', record_fields, eventHandler);
+
+BaseRecord.registerRecord(History, 'histories', 'history', History);

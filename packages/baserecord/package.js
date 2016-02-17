@@ -19,8 +19,7 @@ Package.onUse(function(api) {
     api.addFiles('client/record.html', 'client');
     api.addFiles('client/record.js', 'client');
     api.addFiles("common.js");
-    api.export('Record');
-    api.export('registerRecord');
+    api.export('BaseRecord');
 });
 
 Package.onTest(function(api) {

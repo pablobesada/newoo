@@ -1,5 +1,6 @@
+Apartment = function() {}
 
-var record_fields = [
+Apartment.prototype.fieldDefinitions = [
     {name: '_sync', type: 'integer'},
     {name: 'code', type: 'string'},
     {name: 'address', type: 'string'},
@@ -10,7 +11,7 @@ var record_fields = [
 ];
 
 
-record = registerRecord(Apartments, 'apartments', 'apartment', record_fields);
+record = BaseRecord.registerRecord(Apartments, 'apartments', 'apartment', Apartment);
 var listview_definition = ['code', 'address'];
 record.listview_definition = listview_definition;
 
@@ -19,7 +20,7 @@ record.listview_definition = listview_definition;
 Template.apartments = new Template('apartments', Template.recordlist.renderFunction);
 Template.apartment = new Template('apartment', Template.record.renderFunction);
 
-var baserecord = new Record(Apartments, 'apartment', record_fields);
+var baserecord = new RecordDefinition(Apartments, 'apartment', record_fields);
 
 Template.apartments.onCreated(baserecord.on_created);
 Template.apartments.helpers(baserecord.recordlist_helpers);

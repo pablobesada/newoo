@@ -2,9 +2,15 @@ Meteor.publish('Apartments', function() {
     return Apartments.find({});
 });
 
-Meteor.publish('Transactions', function(limit) {
+Meteor.publish('Transactions', function(args) {
+
     //Meteor._sleepForMs(2000);
-    return Transactions.find({}, { limit: limit , sort: {number: 1}})
+    console.log(args.msg);
+    var options = args.options || {};
+    var query = args.query || {};
+    console.log(["publishing query: ",query]);
+    console.log(["publishing options: ",options]);
+    return Transactions.find(query, options)
 });
 
 Meteor.publish('History', function() {

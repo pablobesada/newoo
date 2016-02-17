@@ -3,14 +3,17 @@ console.log("EN BASE RECORD");
 console.log(Template);
 
 
+BaseRecord = {}
 
-Record = function(collection, record_template, record_fields, event_handler) {
+RecordDefinition = function(collection, record_template, record_class) {
     var thisRecord = this;
     var observerHandle = null;
     var cur_rec = new ReactiveVar(null);
     var cur_rec_changed = new ReactiveVar(0);
     var fields_map = {}
-    record_fields.forEach(function (f) {fields_map[f.name] = f});
+    if (!record_class.prototype.eventHandlers) record_class.prototype.eventHandlers = {};
+    var event_handler = record_class.prototype.eventHandlers;
+    record_class.prototype.fieldDefinitions.forEach(function (f) {fields_map[f.name] = f});
 
     this.listview_onCreated = function() {
         console.log(this);
@@ -18,7 +21,8 @@ Record = function(collection, record_template, record_fields, event_handler) {
         instance.limit = new ReactiveVar(30);
         instance.autorun(function () {
             var limit = instance.limit.get();
-            subscription = instance.subscribe(collection._name, limit, {
+            console.log("subscribing to " + collection._name);
+            subscription = instance.subscribe(collection._name, {msg: 'record', options: {limit: limit}}, {
                 onStop: function (error) {
                     console.log("en OnStop de Subscribe " + collection._name + "  " + error);
                     //observerHandle.stop()
@@ -53,12 +57,13 @@ Record = function(collection, record_template, record_fields, event_handler) {
             })
             return cursor;
         },
+
         current: function () {
             console.log("getting current from records... ");
             return cur_rec.get();
         },
         list_fields: function() {
-            return record_fields.filter(function (f) {return f.type != 'array';});
+            return record_class.prototype.fieldDefinitions.filter(function (f) {return f.type != 'array';});
         },
         get_field_value: function (rec, fn) {
             return rec[fn];
@@ -74,10 +79,13 @@ Record = function(collection, record_template, record_fields, event_handler) {
     this.recordlist_events = {
         "click .js-add-record": function (event) {
             event.preventDefault();
-            record = {};
-            record_fields.filter(function (f) {return f.type == 'array';}).forEach( function (detail) {
+            record = Object.create(record_class);
+            record_class.prototype.fieldDefinitions.filter(function (f) {return f.type == 'array';}).forEach( function (detail) {
                 if (!record[detail.name]) record[detail.name] = [];
             });
+            if (event_handler) {
+                if (event_handler['onCreate']) event_handler['onCreate'].call(record);
+            }
             console.log("nuevo");
             cur_rec.set(record);
         },
@@ -112,9 +120,15 @@ Record = function(collection, record_template, record_fields, event_handler) {
 
     this.record_helpers = {
         record: function () {
+            Meteor.defer(function () {$('.input-group.date').datepicker({
+                format: "yyyy-mm-dd",
+                autoclose: true,
+            })});
+
             return cur_rec.get();
         },
         get_field_value: function (rec, fn) {
+            console.log(rec[fn]);
             return rec[fn];
         },
         get_field_readonly: function (rec, fn) {
@@ -128,10 +142,10 @@ Record = function(collection, record_template, record_fields, event_handler) {
             return rec[dn][idx][fn];
         },
         fields: function() {
-            return record_fields.filter(function (f) {return f.type != 'array';});
+            return record_class.prototype.fieldDefinitions.filter(function (f) {return f.type != 'array';});
         },
         detail_fields: function() {
-            return record_fields.filter(function (f) {return f.type == 'array';});
+            return record_class.prototype.fieldDefinitions.filter(function (f) {return f.type == 'array';});
         },
         create_object: function(params) {
             return params.hash;
@@ -144,7 +158,7 @@ Record = function(collection, record_template, record_fields, event_handler) {
     var canFocus = function (rec, fn) {
         var canfocus = true;
         if (event_handler) {
-            if (event_handler["canFocus"]) canfocus = event_handler["canFocus"](rec, fn);
+            if (event_handler["canFocus"]) canfocus = event_handler["canFocus"].call(rec, fn);
         }
         return canfocus;
     }
@@ -157,7 +171,7 @@ Record = function(collection, record_template, record_fields, event_handler) {
             event.preventDefault();
             record =cur_rec.get();
             if (record) {
-                record_fields.filter(function (f) {return f.type == 'array';}).forEach( function (detail) {
+                record_class.prototype.fieldDefinitions.filter(function (f) {return f.type == 'array';}).forEach( function (detail) {
                     if (!record[detail.name]) record[detail.name] = [];
                     var new_row = {};
                     detail.fields.forEach( function (field) {
@@ -185,8 +199,8 @@ Record = function(collection, record_template, record_fields, event_handler) {
             }
 
             if (event_handler) {
-                if (event_handler["changed"]) event_handler["changed"](record, fn);
-                if (event_handler["changed " + event.target.name]) event_handler["changed " + fn](record)
+                if (event_handler["changed"]) event_handler["changed"].call(record, fn);
+                if (event_handler["changed " + event.target.name]) event_handler["changed " + fn].call(record)
             }
             cur_rec.set(record);
         },
@@ -236,11 +250,11 @@ Record = function(collection, record_template, record_fields, event_handler) {
 
 }
 
-registerRecord = function (collection, recordlist_template, record_template, fields, event_handler) {
+BaseRecord.registerRecord = function (collection, recordlist_template, record_template, record_class) {
     Template[recordlist_template] = new Template(recordlist_template, Template.recordlist.renderFunction);
     Template[record_template] = new Template(record_template, Template.record.renderFunction);
 
-    var baserecord = new Record(collection, record_template, fields, event_handler);
+    var baserecord = new RecordDefinition(collection, record_template, record_class);
 
     Template[recordlist_template].onCreated(baserecord.listview_onCreated);
     Template[recordlist_template].onRendered(function () {
@@ -252,8 +266,14 @@ registerRecord = function (collection, recordlist_template, record_template, fie
 
     Template[record_template].onCreated(baserecord.recordview_onCreated);
     Template[record_template].onRendered(function () {
-        console.log("RECORD TEMPLATE Rendered");
+        console.log("on rendered record");
+        console.log($('.input-group.date'));
+        this.$('.input-group.date').datepicker({
+            format: "yyyy-mm-dd",
+            autoclose: true,
+        });
     });
+
     Template[record_template].onDestroyed(function () {
         console.log("RECORD TEMPLATE destroyed");
     });

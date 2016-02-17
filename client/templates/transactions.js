@@ -1,4 +1,10 @@
-var record_fields = [
+
+
+var listview_definition = ['number', 'date','description', 'apartment', 'currency', 'amount']
+
+var Transaction = function() {};
+
+Transaction.prototype.fieldDefinitions = [
     {name: '_sync', type: 'integer'},
     {name: 'number', type: 'integer'},
     {name: 'date', type: 'date'},
@@ -6,6 +12,7 @@ var record_fields = [
     {name: 'amount', type: 'real'},
     {name: 'currency', type: 'string'},
     {name: 'apartment', type: 'string'},
+    {name: 'user', type: 'string'},
     {name: 'accounts', type: 'array', fields: [
         {name: 'code', type: 'string'},
         {name: 'percent', type: 'real'},
@@ -13,36 +20,43 @@ var record_fields = [
     ]},
 ];
 
-var listview_definition = ['number', 'date','description', 'apartment', 'currency', 'amount']
-var eventHandler = {
-    "changed amount": function (record) {
-        record.accounts.forEach(function (row) {
-            row.amount = record.amount * row.percent / 100.0;
+Transaction.prototype.eventHandlers = {
+    "changed amount": function () {
+        this.accounts.forEach(function (row) {
+            row.amount = this.amount * row.percent / 100.0;
         })
     },
-    "changed": function (record, fieldname) {
-        record.accounts.forEach(function (row) {
-            row.amount = record.amount * row.percent / 100.0;
+    "changed": function (fieldname) {
+        this.accounts.forEach(function (row) {
+            row.amount = this.amount * row.percent / 100.0;
         })
     },
-    "canFocus": function (record, fieldname) {
-        if (record.number == 5) return true;
+    "canFocus": function (fieldname) {
+        return true;
+        if (this.number == 5) return true;
         if (fieldname != 'number') return false;
         return true;
     },
-    "changed accounts": function (record, rownr, fieldname) {
+    "changed accounts": function (rownr, fieldname) {
         console.log("changed accounts");
     },
-    "changed accounts.percent": function (record, rownr) {
-        record.accounts[rownr].amount = record.amount * record.accounts[rownr].percent / 100.0;
+    "changed accounts.percent": function (rownr) {
+        this.accounts[rownr].amount = this.amount * record.accounts[rownr].percent / 100.0;
     },
     "saved": function (record) {
         console.log("saved");
+    },
+    "onCreate": function () {
+        //newRecord.date = moment().format("%Y-%m-%d")
+        this.date = moment().format("Y-M-D")
+        this.user = Meteor.user().username;
     }
 
 }
 
-record = registerRecord(Transactions, 'transactions', 'transaction', record_fields, eventHandler);
+
+
+record = BaseRecord.registerRecord(Transactions, 'transactions', 'transaction', Transaction);
 console.log(Template.transactions)
 console.log(Template['transactions'])
 record.listview_definition = listview_definition;

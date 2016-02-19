@@ -2,6 +2,10 @@
 Session.setDefault('counter', 0);
 
 Template.home.helpers({
+    get_template: function () {
+        var data = Router.current().data();
+        if (data.collection) return data.collection + "_listview";
+    },
     counter: function () {
         return Session.get('counter');
     }

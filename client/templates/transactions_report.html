@@ -7,8 +7,26 @@
         </div>
         <input type="submit"/>
     </form>
-    {{start}}
-    {{end}}
+    <table class="table table-striped table-hover">
+        <thead>
+        <tr>
+            <th></th>
+            {{#each user in users}}
+                <th class="text-right">{{user}}</th>
+            {{/each}}
+            <th class="text-right">Total</th>
+        </tr>
+        </thead>
+        {{#each currency in currencies}}
+            <tr>
+                <th>{{currency}}</th>
+                {{#each user in users}}
+                    <td class="text-right">{{get_amount user currency}}</td>
+                {{/each}}
+                <td class="text-right">{{get_total currency}}</td>
+            </tr>
+        {{/each}}
+    </table>
     <table class="table table-striped table-hover">
         <thead>
         <tr>
@@ -23,17 +41,26 @@
         </thead>
         <tbody>
         {{#each trans in transactions}}
-            <tr>
-                <td>{{trans.number}}</td>
-                <td>{{trans.date}}</td>
-                <td>{{trans.apartment}}</td>
-                <td>{{trans.amount}}</td>
-                <td>{{trans.amount}}</td>
-                <td>{{trans.user}}</td>
-                <td>{{trans.description}}</td>
-            </tr>
+            {{#with trans}}
+                <tr class="js-record-row">
+                    <td>{{trans.number}}</td>
+                    <td>{{trans.date}}</td>
+                    <td>{{trans.apartment}}</td>
+                    {{#if isARS trans.currency}}
+                        <td>{{trans.amount}}</td>
+                        <td></td>
+                    {{else}}
+                        <td></td>
+                        <td>{{trans.amount}}</td>
+                    {{/if}}
+                    <td>{{trans.user}}</td>
+                    <td>{{trans.description}}</td>
+                </tr>
+            {{/with}}
         {{/each}}
         </tbody>
     </table>
+    <hr>
+    {{> Transactions_view record_variable=cur_record}}
 
 </template>

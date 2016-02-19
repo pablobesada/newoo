@@ -13,4 +13,4 @@ History.prototype.fieldDefinitions = record_fields = [
 
 
 
-BaseRecord.registerRecord(History, 'histories', 'history', History);
+BaseRecord.registerRecord(Histories, History);

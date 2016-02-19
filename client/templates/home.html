@@ -1,6 +1,7 @@
 <template name="home">
-    {{> navbar ""}}
-    {{> Template.dynamic template=template}}
-    <hr/>
-
+    <div class="container">
+        <div class="panel-group">
+            {{> Template.dynamic template=get_template}}
+        </div>
+    </div>
 </template>

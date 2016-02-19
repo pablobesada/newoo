@@ -4,10 +4,10 @@ Meteor.methods({
         //if (! Meteor.userId()) {
         //    throw new Meteor.Error("not-authorized");
         //}
-        collection = eval(collection_name); //chequear dps de esto que collection sea un Collection!
-        console.log(r._id);
         console.log("saving: ");
-        console.log(r);
+        var collection = eval(collection_name); //chequear dps de esto que collection sea un Collection!
+        console.log(r._id);
+        console.log(r.number);
         var res;
         if (r._id) {
             console.log("updating... id: " + r._id);
@@ -35,3 +35,5 @@ Meteor.methods({
         return {ok: res}
     },
 });
+
+console.log("en archivo de methos");

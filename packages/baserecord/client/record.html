@@ -7,118 +7,136 @@
 
 
 <template name="recordlist">
-    <a href="/apartments">APARTMENTS</a>
-    <a href="/transactions">TRANSACCIONES</a>
-    <a href="/report/transactions">Listado de Transacciones</a>
-    <button class="js-add-record">+</button>
+    <div class="panel panel-default">
+        <div class="panel-heading">{{> navbar ""}}</div>
+        <div class="panel-body">
+            <a href="/apartments">APARTMENTS</a>
+            <a href="/transactions">TRANSACCIONES</a>
+            <a href="/report/transactions">Listado de Transacciones</a>
+            <button class="js-add-record">+</button>
 
-    <div class="js-recordlist_container">
-        <table class="table table-striped table-hover">
-            <thead>
-            <tr>
-                {{#each field in view_definition}}
-                    <th>
-                        <span>{{field}}</span>
-                    </th>
-                {{/each}}
-            </tr>
-            </thead>
-            <tbody>
-            {{#each record in records}}
-                {{#with record}}
-                    <tr class="js-record-row">
-                        {{#each field in view_definition}}
-                            <td>
-                                <span>{{get_field_value record field}}</span>
-                            </td>
+            <div class="js-recordlist_container">
+                <table class="table table-striped table-hover">
+                    <thead>
+                    <tr>
+                        {{#each col in get_columns}}
+                            <th>
+                                <span>{{col.label}}</span>
+                            </th>
                         {{/each}}
-                        <td>
-                            <button class="js-delete-record">&times;</button>
-                        </td>
                     </tr>
-                {{/with}}
-            {{/each}}
-            <tr id="showMoreResults">
-                <td><span class="loading">Loading...</span></td>
-            </tr>
-            </tbody>
-        </table>
+                    </thead>
+                    <tbody>
+                    {{#each record in records}}
+                        {{#with record}}
+                            <tr class="js-record-row">
+                                {{#each column in get_columns}}
+                                    <td>
+                                        <span>{{get_field_value record column.field}}</span>
+                                    </td>
+                                {{/each}}
+                            </tr>
+                        {{/with}}
+                    {{/each}}
+                    <tr id="showMoreResults">
+                        <td><span class="loading">...</span></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
-    <hr/>
     {{> UI.dynamic template=recordTemplate }}
 </template>
 
 <template name="record">
-    {{#if record}}
-        {{#with record}}
-            {{> recordbar }}
-            <form class="js-record-form form-inline" role="form">
-                <button type="submit">save</button>
-                {{#each field in fields}}
-                    {{#let fname=field.name ftype=field.type fvalue=(get_field_value record field.name) readonly=(get_field_readonly record field.name)}}
-                        <!--div>{{{create_input ftype fname fvalue}}}</div-->
-                        {{> Template.dynamic template=(input_template ftype) data=(create_object fname=fname ftype=ftype fvalue=fvalue readonly=readonly)}}
-                    {{/let}}
-                {{/each}}
-                <button class="js-add-record-row">+</button>
-                <div>
-                    {{#each detail_field in detail_fields}}
-                        {{#let detail_name=detail_field.name row_fields=detail_field.fields}}
-                            {{#each row in (get_detail_records record detail_name)}}
-                                {{#let row_nr = @index}}
-                                    <div>
-                                        {{#each field in row_fields}}
-                                            {{#let fname=field.name ftype=field.type fvalue=(get_field_value row field.name)}}
-                                                <input class="js-row-field" placeholder="{{fname}}" name="{{fname}}"
-                                                       detailname="{{detail_name}}" row="{{row_nr}}"
-                                                       value="{{fvalue}}"/>
-                                            {{/let}}
-                                        {{/each}}
-                                        <button class="js-delete-row" detailname="{{detail_name}}"
-                                                row="{{@index}}">&times;</button>
-                                    </div>
-                                {{/let}}
+    <div class="panel panel-primary">
+        {{#if record}}
+            {{#with record}}
+                <div class="panel-heading">{{> recordbar }}</div>
+                <div class="panel-body">
+                    <form class="js-record-form" role="form">
+                        <div class="row">
+                            {{#each field in fields}}
+                                <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3">
+                                    {{#let input_template=(get_input_template field.type) fname=field.name ftype=field.type fvalue=(get_field_value record field.name) readonly=(get_field_readonly record field.name)}}
+                                        {{> Template.dynamic template='record_input' data=(create_object input_template=input_template fname=fname ftype=ftype fvalue=fvalue readonly=readonly class='js-record-field')}}
+                                    {{/let}}
+                                </div>
                             {{/each}}
-                        {{/let}}
-                    {{/each}}
+                        </div>
+                        <div>
+                            <div class="panel panel-default">
+                                {{#each detail_field in detail_fields}}
+                                    {{#let detail_name=detail_field.name row_fields=detail_field.fields}}
+                                        <button class="js-add-record-row" fieldname="{{detail_name}}">+</button>
+                                        <table class="table table-striped table-condensed table-hover">
+                                            <thead>
+                                            <tr>
+                                                {{#each field in row_fields}}
+                                                    <th>{{field.name}}</th>
+                                                {{/each}}
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {{#each row in (get_detail_records record detail_name)}}
+                                                {{#let row_nr = @index}}
+                                                    <tr>
+                                                        {{#each field in row_fields}}
+                                                            <td>
+                                                                {{#let fvalue=(get_field_value row field.name)}}
+                                                                    {{> Template.dynamic template=(get_input_template field.type) data=(create_object fname=field.name ftype=field.type fvalue=fvalue readonly=false class='js-row-field' detail_name=detail_name row_nr=row_nr)}}
+                                                                {{/let}}
+                                                            </td>
+                                                        {{/each}}
+                                                        <td>
+                                                            <button class="js-delete-row" detailname="{{detail_name}}"
+                                                                    row="{{@index}}">&times;</button>
+                                                        </td>
+                                                    </tr>
+                                                {{/let}}
+                                            {{/each}}
+                                            </tbody>
+                                        </table>
+                                    {{/let}}
+                                {{/each}}
+                            </div>
+                        </div>
+                    </form>
                 </div>
-            </form>
+            {{/with}}
+        {{/if}}
+    </div>
+</template>
 
-        {{/with}}
-    {{/if}}
+<template name="record_input">
+    <div class="form-group">
+        <label for="{{fname}}">{{fname}}:</label>
+        {{> Template.dynamic template=input_template}}
+    </div>
 </template>
 
 <template name="string_input">
-    <div class="form-group">
-        <label for="{{fname}}">{{fname}}:</label>
-        <input type="text" class="js-record-field form-control" name="{{fname}}" value="{{fvalue}}"
-               readonly="{{readonly}}"/>
-    </div>
+
+    <input type="text" class="{{class}} form-control" name="{{fname}}" value="{{fvalue}}"
+           readonly="{{readonly}}" detailname="{{detail_name}}" row="{{row_nr}}"/>
 </template>
 
 <template name="integer_input">
-    <div class="form-group">
-        <label for="{{fname}}">{{fname}}:</label>
-        <input class="js-record-field form-control" type="number" step="1" name="{{fname}}" value="{{fvalue}}"
-               readonly="{{readonly}}"/>
-    </div>
+
+    <input class="{{class}} form-control" type="number" step="1" name="{{fname}}" value="{{fvalue}}"
+           readonly="{{readonly}}" detailname="{{detail_name}}" row="{{row_nr}}"/>
 </template>
 
 <template name="real_input">
-    <div class="form-group">
-        <label for="{{fname}}">{{fname}}:</label>
-        <input class="js-record-field form-control" type="number" name="{{fname}}" value="{{fvalue}}"
-               readonly="{{readonly}}"/>
-    </div>
+    <input class="{{class}} form-control" type="number" name="{{fname}}" value="{{fvalue}}"
+           readonly="{{readonly}}" detailname="{{detail_name}}" row="{{row_nr}}"/>
 </template>
 
 <template name="date_input">
-    <div class="form-group">
-        <label for="{{fname}}">{{fname}}:</label>
-        <div class="input-group date">
-            <input class="js-record-field js-date-input form-control" type="text" name="{{fname}}" value="{{fvalue}}"
-                   readonly="{{readonly}}"/>
-            <span class="input-group-addon"><i class="glyphicon glyphicon-th"></i></span>
-        </div>
+    <div class="input-group date">
+        <input class="{{class}} js-date-input form-control" type="text" name="{{fname}}" value="{{fvalue}}"
+               readonly="{{readonly}}" detailname="{{detail_name}}" row="{{row_nr}}"/>
+        <span class="input-group-addon"><i class="glyphicon glyphicon-th"></i></span>
     </div>
 </template>

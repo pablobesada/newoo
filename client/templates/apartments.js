@@ -11,9 +11,11 @@ Apartment.prototype.fieldDefinitions = [
 ];
 
 
-record = BaseRecord.registerRecord(Apartments, 'apartments', 'apartment', Apartment);
-var listview_definition = ['code', 'address'];
-record.listview_definition = listview_definition;
+listviewdef = BaseRecord.registerRecord(Apartments, Apartment);
+var listview_definition = [
+    {label:'codigo', field: 'code'},
+    {label:'direccion', field: 'address'}];
+listviewdef.listview_definition = listview_definition;
 
 
 /*

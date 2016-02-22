@@ -28,24 +28,25 @@ Transaction.prototype.fieldDefinitions = [
 ];
 
 Transaction.prototype.eventHandlers = {
-    "changed amount": function (record) {
-        console.log("aaa");
-        console.log(record.amount);
-        record.accounts.forEach(function (row) {
-            console.log(record);
-            console.log(row);
-            console.log(row.percent);
-            console.log(record.amount);
-            console.log(row.percent / 100.0);
-            row.amount = record.amount * row.percent / 100.0;
-        })
+    "changed apartment": function (record) {
+        Meteor.call("baserecord_getRecord", "Apartments", {code: record.apartment}, function (error, result) {
+            var apartment = result;
+            console.log(apartment);
+            if (apartment) {
+                record.accounts.length = 0;
+                apartment.accounts.forEach(function (aprow) {
+                    var transRow = {};
+                    transRow.user = aprow.user;
+                    transRow.percent = aprow.percent;
+                    transRow.amount = record.amount * aprow.percent / 100.0;
+                    record.accounts.push(transRow);
+                })
+            }
+        });
     },
-    "changedXXX": function (record, fieldname) {
-        console.log("bbb");
-        console.log(record.amount);
+    "changed amount": function (record, fieldname) {
+        record.description = record.description + "A";
         record.accounts.forEach(function (row) {
-            console.log(row);
-            console.log(row.percent);
             row.amount = record.amount * row.percent / 100.0;
         })
     },
@@ -89,6 +90,14 @@ Transaction.prototype.eventHandlers = {
     "canAddRow accounts": function (record) {
         return true;
     },
+    "canDeleteRow": function (record, fieldname) {
+        if (fieldname == "accounts") {
+            return true;
+        }
+    },
+    "canDeleteRow accounts": function (record) {
+        return true;
+    },
     /*
     "onCreateRow": function (record, detailname, newRow) {
         if (detailname == 'accounts') {
@@ -105,3 +114,5 @@ console.log("en transactions.js")
 
 listviewdef = BaseRecord.registerRecord(Transactions, Transaction);
 listviewdef.listview_definition = listview_definition;
+
+BaseRecord.records.Transaction = Transaction

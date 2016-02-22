@@ -4,10 +4,9 @@ Meteor.methods({
         //if (! Meteor.userId()) {
         //    throw new Meteor.Error("not-authorized");
         //}
+
         console.log("saving: ");
         var collection = eval(collection_name); //chequear dps de esto que collection sea un Collection!
-        console.log(r._id);
-        console.log(r.number);
         var res;
         if (r._id) {
             console.log("updating... id: " + r._id);
@@ -34,6 +33,17 @@ Meteor.methods({
         res = collection.remove({_id: id});
         return {ok: res}
     },
+
 });
 
+if (Meteor.isServer) {
+    Meteor.methods({
+        baserecord_getRecord: function (collection_name, query) {
+            console.log("getRecord: " + collection_name);
+            var collection = eval(collection_name); //chequear dps de esto que collection sea un Collection!
+            var res =  collection.findOne(query);
+            return res;
+        }
+    })
+}
 console.log("en archivo de methos");

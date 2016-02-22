@@ -5,7 +5,7 @@ Apartment.prototype.fieldDefinitions = [
     {name: 'code', type: 'string'},
     {name: 'address', type: 'string'},
     {name: 'accounts', type: 'array', fields: [
-        {name:'code', type: 'string'},
+        {name:'user', type: 'string'},
         {name: 'percent', type: 'real'}
     ]}
 ];

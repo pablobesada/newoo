@@ -44,7 +44,6 @@ ListViewDefinition = function(collection, record_template, record_class, cur_rec
             return cursor;
         },
         current: function () {
-            console.log("getting current from records... ");
             return Template.instance().cur_rec.get();
         },
         list_fields: function () {
@@ -79,13 +78,16 @@ ListViewDefinition = function(collection, record_template, record_class, cur_rec
                     record[field.name] = BaseRecord.utils['blank_' + field.type];
                 }
             });
+            decorateRecord(record, record_class.prototype.fieldDefinitions);
             if (template.event_handler) {
                 if (template.event_handler['onCreate']) template.event_handler['onCreate'](record);
             }
-            template.cur_rec.set(record);
+            setWindowRecord(template.cur_rec, record, record_class.prototype.fieldDefinitions)
         },
         "click .js-record-row": function (event, template) {
-            template.cur_rec.set(this);
+            record = this;
+            decorateRecord(record, record_class.prototype.fieldDefinitions);
+            setWindowRecord(template.cur_rec, record, record_class.prototype.fieldDefinitions);
         },
         "scroll .js-recordlist_container": function (event, instance) {
             event.preventDefault();
@@ -105,10 +107,94 @@ ListViewDefinition = function(collection, record_template, record_class, cur_rec
                 }
             }
         },
-
     };
 };
 
+function decorateRecord(record, fieldDefs) {
+    record._observer = new ReactiveVar(0);
+    record._observe_func = function(changes) {
+        if (record._observer) record._observer.set(record._observer.get()+1);
+    }
+    Object.observe(record, record._observe_func)
+    fieldDefs.forEach(function (field) {
+        if (field.type == 'array') {
+            //decorateArray(record, field);
+
+
+            record[field.name]._observe_func = function (changes) {
+                record._observer.set(record._observer.get()+1);
+                _(changes).each(function(change) {
+                    if (change.type=='add') decorateRecord(record[field.name][change.name], field.fields)
+                })
+            }
+            Object.observe(record[field.name], record[field.name]._observe_func);
+            _(record[field.name]).each(function (row) {
+                decorateRecord(row, field.fields);
+            })
+
+
+
+        }
+    });
+}
+
+function undecorateRecord(record, fieldDefs) {
+    Object.unobserve(record, record._observe_func);
+    delete record._observer;
+    delete record._observe_func;
+
+    fieldDefs.forEach(function (field) {
+        if (field.type == 'array') {
+            Object.unobserve(record[field.name], record[field.name]._observe_func);
+            delete record[field.name]._observer
+            delete record[field.name]._observe_func
+            _(record[field.name]).each(function (row) {
+                undecorateRecord(row, field.fields);
+            })
+        }
+    });
+}
+
+/*
+function decorateRecord(record, fieldDefs) {
+    fieldDefs.forEach(function (field) {
+        if (field.type == 'array') {
+            record[field.name]._length = new ReactiveVar(record[field.name].length);
+            decorateArray(record, field);
+            _(record[field.name]).each (function (row) {
+                decorateRecord(row, field.fields);
+                row.__record = record;
+            });
+        } else {
+            if (typeof record[field.name] !== ReactiveVar) record['_'+field.name] = new ReactiveVar(record[field.name]);
+            Object.defineProperty(record, field.name, {
+                get: function () {
+                    //if (field.name == "description") console.log("description.. returning: " + record["_" + field.name].get())
+                    return record["_" + field.name].get();
+                },
+                set: function (v) {
+                    //if (field.name == "percent") console.log("setting percent.. : " + v)
+                    record["_" + field.name].set(v);
+                    if (record.__record) {
+                        record.__record.__has_changes = true;
+                    } else {
+                        record.__has_changes = true;
+                    }
+                },
+            })
+        }
+    });
+}
+*/
+
+function setWindowRecord(cur_rec, record, fieldsDef) {
+    if (record) {
+        if (!record._observer || !(record._observer instanceof ReactiveVar)) {
+            decorateRecord(record, fieldsDef);
+        }
+    }
+    cur_rec.set(record);
+}
 
 
 ViewDefinition = function(collection, record_template, record_class, cur_rec) {
@@ -116,10 +202,8 @@ ViewDefinition = function(collection, record_template, record_class, cur_rec) {
 
     this.recordview_onCreated = function() {
         var instance = this;
-        console.log(instance);
         instance.cur_rec = cur_rec;
         if (instance.data.record_variable) {
-            console.log("setting cur_rec variable from param")
             instance.cur_rec = instance.data.record_variable;
         }
         instance.event_handler = record_class.prototype.eventHandlers;
@@ -158,8 +242,6 @@ ViewDefinition = function(collection, record_template, record_class, cur_rec) {
             return canfocus;
         }
 
-        console.log("aa");
-        console.log(instance.data);
         instance.autorun( function () {
             var rec = instance.cur_rec.get();
             if (!rec) return;
@@ -176,15 +258,14 @@ ViewDefinition = function(collection, record_template, record_class, cur_rec) {
             var cursor = collection.find({_id: rec._id});
             instance.observerHandle = cursor.observe({
                 changed: function (newDocument, oldDocument, index) {
-                    console.log("cursor record changed: " + oldDocument._id + "   " + oldDocument._sync + "   " + newDocument._sync)
+                    console.log("record changed");
                     if (rec && oldDocument._id == rec._id) {
-                        instance.cur_rec.set(newDocument);
+                        setWindowRecord(instance.cur_rec, newDocument, record_class.prototype.fieldDefinitions);
                     }
                 },
                 removed: function (oldDocument, index) {
-                    console.log("cursor record removed: " + oldDocument._id + "   " + oldDocument._sync)
                     if (rec && oldDocument._id == rec._id) {
-                        instance.cur_rec.set({});
+                        setWindowRecord(instance.cur_rec, null, record_class.prototype.fieldDefinitions);
                     }
                 }
             })
@@ -195,24 +276,30 @@ ViewDefinition = function(collection, record_template, record_class, cur_rec) {
     }
 
     this.record_helpers = {
-        record: function () {
+        afterRender: function () {
             Meteor.defer(function () {$('.input-group.date').datepicker({
                 format: "yyyy-mm-dd",
                 autoclose: true,
             })});
+        },
+        record: function () {
             return Template.instance().cur_rec.get();
         },
         get_field_value: function (rec, fn) {
+            rec._observer.get();
             return rec[fn];
         },
         get_field_readonly: function (rec, fn) {
             return !Template.instance().canFocus(rec, fn);
         },
-
         get_detail_records: function (rec, dn) {
+            rec._observer.get();
+            //return [rec[dn][0]];
             return rec[dn];
         },
         get_row_field_value: function (rec, dn, idx, fn) {
+            //return rec[dn][idx]["_"+fn].get();
+            if (rec[dn][idx]._observer) rec[dn][idx]._observer.get();
             return rec[dn][idx][fn];
         },
         fields: function() {
@@ -236,16 +323,15 @@ ViewDefinition = function(collection, record_template, record_class, cur_rec) {
             if (!record) return;
             var dn = event.target.attributes.fieldname.value;
             var canAddRow = true;
-            console.log(dn);
-            console.log(canAddRow);
             if (template.event_handler) {
                 if (template.event_handler["canAddRow"]) canAddRow = template.event_handler["canAddRow"](record, dn);
                 if (canAddRow && template.event_handler["canAddRow " + dn]) canAddRow = template.event_handler["canAddRow " + dn](record)
             }
-            console.log(canAddRow);
             if (canAddRow) {
                 record_class.prototype.fieldDefinitions.filter(function (f) {return f.type == 'array';}).forEach( function (detail) {
-                    if (!record[detail.name]) record[detail.name] = [];
+                    if (!record[detail.name]) {
+                        record[detail.name] = [];
+                    }
                     var new_row = {};
                     detail.fields.forEach( function (field) {
                         new_row[field.name] = BaseRecord.utils['blank_' + field.type];
@@ -256,7 +342,7 @@ ViewDefinition = function(collection, record_template, record_class, cur_rec) {
                     }
                     record[detail.name].push(new_row);
                 });
-                template.cur_rec.set(record);
+                //setWindowRecord(template.cur_rec, record, record_class.prototype.fieldDefinitions)
             }
         },
         "change .js-record-field": function (event, template) {
@@ -267,7 +353,7 @@ ViewDefinition = function(collection, record_template, record_class, cur_rec) {
                 if (template.event_handler["changed"]) template.event_handler["changed"](record, fn);
                 if (template.event_handler["changed " + event.target.name]) template.event_handler["changed " + fn](record)
             }
-            template.cur_rec.set(record);
+            //setWindowRecord(template.cur_rec, record, record_class.prototype.fieldDefinitions)
         },
         "focus .js-record-field": function (event, template) {
             var record = template.cur_rec.get();
@@ -284,18 +370,26 @@ ViewDefinition = function(collection, record_template, record_class, cur_rec) {
                 if (template.event_handler["changed " +  dn]) template.event_handler["changed " + dn](record, rownr, fn);
                 if (template.event_handler["changed " + dn + "." + fn]) template.event_handler["changed " + dn + "." + fn](record, rownr)
             }
-            template.cur_rec.set(record);
+            //setWindowRecord(template.cur_rec, record, record_class.prototype.fieldDefinitions)
         },
         "click .js-delete-row": function (event, template) {
             event.preventDefault();
             var record = template.cur_rec.get();
+            if (!record) return;
             var dn = event.target.attributes.detailname.value;
             var rownr = event.target.attributes.row.value;
-            record[dn].splice(rownr, 1);
-            template.cur_rec.set(record);
+            event.preventDefault();
+            var canDeleteRow = true;
+            if (template.event_handler) {
+                if (template.event_handler["canDeleteRow"]) canDeleteRow = template.event_handler["canDeleteRow"](record, dn);
+                if (canDeleteRow && template.event_handler["canDeleteRow " + dn]) canDeleteRow = template.event_handler["canDeleteRow " + dn](record)
+            }
+            if (canDeleteRow) {
+                record[dn].splice(rownr, 1);
+                //setWindowRecord(template.cur_rec, record, record_class.prototype.fieldDefinitions)
+            }
         },
         "click .js-delete-record": function (event, template) {
-            console.log("AAA");
             event.preventDefault();
             var canDelete = true;
             if (template.event_handler) {
@@ -303,7 +397,9 @@ ViewDefinition = function(collection, record_template, record_class, cur_rec) {
             }
             if (canDelete) {
                 if (window.confirm("Seguro quieres borrar este registro?")) {
-                    Meteor.call("baserecord_delete", collection._name, this._id);
+                    Meteor.call("baserecord_delete", collection._name, this._id, function () {
+                        setWindowRecord(template.cur_rec, null, record_class.prototype.fieldDefinitions)
+                    });
                 }
             }
         },
@@ -311,7 +407,6 @@ ViewDefinition = function(collection, record_template, record_class, cur_rec) {
         "click .js-save-record": function (event, template) {
             // Prevent default browser form submit
             event.preventDefault();
-            console.log("BBB")
             record = template.cur_rec.get();
             // Insert a task into the collection
             if (!record) return;
@@ -320,19 +415,29 @@ ViewDefinition = function(collection, record_template, record_class, cur_rec) {
                 if (template.event_handler["canSave"]) canSave = template.event_handler["canSave"](record);
                 if (canSave && template.event_handler["beforeSave"]) {
                     template.event_handler["beforeSave"](record);
-                    template.cur_rec.set(record);
+                    //setWindowRecord(template.cur_rec, record, record_class.prototype.fieldDefinitions)
                 }
             }
             if (canSave) {
+                undecorateRecord(record, record_class.prototype.fieldDefinitions);
+                //record.accounts[0].pepito = 'yuyu'
+                //setWindowRecord(template.cur_rec, null, record_class.prototype.fieldDefinitions)
                 Meteor.call("baserecord_save", collection._name, record, function (error, result) {
+
                     if (!error && result.ok) {
+
                         console.log("result ok: settings current_record with sync: " + result.record._sync)
                         if (template.event_handler) {
                             if (template.event_handler["saved"]) template.event_handler["saved"](record);
                         }
-                        template.cur_rec.set(result.record);
+                        setWindowRecord(template.cur_rec, result.record, record_class.prototype.fieldDefinitions)
+
+                    } else {
+                        console.log("error returned from save")
+                        console.log(arguments);
                     }
                 });
+                //setWindowRecord(template.cur_rec, record, record_class.prototype.fieldDefinitions)
             }
         },
     };
@@ -357,7 +462,6 @@ BaseRecord.registerRecord = function (collection, record_class) {
     Template[recordlist_template].onDestroyed(listviewdef.listview_onDestroy);
     Template[recordlist_template].helpers(listviewdef.recordlist_helpers);
     Template[recordlist_template].events(listviewdef.recordlist_events);
-    console.log(record_template);
     Template[record_template] = new Template(record_template, Template.record.renderFunction);
     var viewdef = new ViewDefinition(collection, record_template, record_class, cur_rec);
     Template[record_template].onCreated(viewdef.recordview_onCreated);
@@ -372,5 +476,7 @@ BaseRecord.registerRecord = function (collection, record_class) {
     return listviewdef;
 }
 
+BaseRecord.records = {}
+BaseRecord.setWindowRecord = setWindowRecord;
 
 

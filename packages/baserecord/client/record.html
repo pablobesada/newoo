@@ -79,8 +79,8 @@
                                             </tr>
                                             </thead>
                                             <tbody>
-                                            {{#each row in (get_detail_records record detail_name)}}
-                                                {{#let row_nr = @index}}
+                                            {{#each (get_detail_records record detail_name)}}
+                                                {{#let row_nr = @index row=this}}
                                                     <tr>
                                                         {{#each field in row_fields}}
                                                             <td>
@@ -104,6 +104,7 @@
                         </div>
                     </form>
                 </div>
+                {{afterRender}}
             {{/with}}
         {{/if}}
     </div>

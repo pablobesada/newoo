@@ -11,3 +11,11 @@ body {
     border: black solid 1px;
     position: relative;
 }
+
+.apartment {
+    background: gray;
+}
+
+.apartment[is_current_apartment=true] {
+    background: red;
+}

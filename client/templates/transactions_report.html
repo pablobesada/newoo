@@ -10,13 +10,18 @@
     </form>
     <div class="container">
         {{#if Template.subscriptionsReady }}
-        <div class="row">
-            {{#each ap in get_apartments}}
-            <div class="col-xs-4 col-sm-3 col-md-2 col-lg-1 js-apartment apartment" apartment_code="{{ap.code}}" is_current_apartment="{{isCurrentApartment ap.code}}">
-                {{ap.code}}
+            <div class="row">
+                <div class="col-xs-4 col-sm-3 col-md-2 col-lg-1 js-apartment apartment" apartment_code=""
+                     is_current_apartment="{{isCurrentApartment ''}}">
+                    Movimientos
+                </div>
+                {{#each ap in get_apartments}}
+                    <div class="col-xs-4 col-sm-3 col-md-2 col-lg-1 js-apartment apartment" apartment_code="{{ap.code}}"
+                         is_current_apartment="{{isCurrentApartment ap.code}}">
+                        {{ap.code}}
+                    </div>
+                {{/each}}
             </div>
-            {{/each}}
-        </div>
         {{/if}}
     </div>
     <table class="table table-striped table-hover">
@@ -39,39 +44,46 @@
             </tr>
         {{/each}}
     </table>
-    <table class="table table-striped table-hover">
-        <thead>
-        <tr>
-            <th>Numero</th>
-            <th>Fecha</th>
-            <th>Depto</th>
-            <th>ARS</th>
-            <th>USD</th>
-            <th>Usuario</th>
-            <th>Descripción</th>
-        </tr>
-        </thead>
-        <tbody>
-        {{#each trans in transactions}}
-            {{#with trans}}
-                <tr class="js-record-row">
-                    <td>{{trans.number}}</td>
-                    <td>{{trans.date}}</td>
-                    <td>{{trans.apartment}}</td>
-                    {{#if isARS trans.currency}}
-                        <td>{{trans.amount}}</td>
-                        <td></td>
-                    {{else}}
-                        <td></td>
-                        <td>{{trans.amount}}</td>
-                    {{/if}}
-                    <td>{{trans.user}}</td>
-                    <td>{{trans.description}}</td>
-                </tr>
-            {{/with}}
-        {{/each}}
-        </tbody>
-    </table>
+    <a class="js-new-transaction">Nuevo</a>
+    <div class="panel">
+        <table class="table table-striped table-hover listview_header">
+            <thead>
+            <tr>
+                <th>Numero</th>
+                <th>Fecha</th>
+                <th>Depto</th>
+                <th class="text-right">ARS</th>
+                <th class="text-right">USD</th>
+                <th>Usuario</th>
+                <th>Descripción</th>
+            </tr>
+            </thead>
+        </table>
+        <div class="listview_content" style="height: 350px">
+            <table class="table table-striped table-hover">
+                <tbody>
+                {{#each trans in transactions}}
+                    {{#with trans}}
+                        <tr class="js-record-row">
+                            <td>{{trans.number}}</td>
+                            <td>{{trans.date}}</td>
+                            <td>{{trans.apartment}}</td>
+                            {{#if isARS trans.currency}}
+                                <td class="text-right">{{trans.amount}}</td>
+                                <td></td>
+                            {{else}}
+                                <td></td>
+                                <td class="text-right">{{trans.amount}}</td>
+                            {{/if}}
+                            <td>{{trans.user}}</td>
+                            <td>{{trans.description}}</td>
+                        </tr>
+                    {{/with}}
+                {{/each}}
+                </tbody>
+            </table>
+        </div>
+    </div>
     <hr>
     {{> Transactions_view record_variable=cur_record}}
 

@@ -116,3 +116,10 @@ listviewdef = BaseRecord.registerRecord(Transactions, Transaction);
 listviewdef.listview_definition = listview_definition;
 
 BaseRecord.records.Transaction = Transaction
+
+//var subscription2 = instance.subscribe(collection._name, {query: {}, options: {sort: {number: -1}, limit: 1}});
+Template.Transactions_view.onCreated(function () {
+    var instance = this;
+    var subscription2 = instance.subscribe("Transactions", {query: {}, options: {sort: {number: -1}, limit: 1}});
+    console.log("Transactions_view:oncreated")
+})

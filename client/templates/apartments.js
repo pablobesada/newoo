@@ -4,6 +4,7 @@ Apartment.prototype.fieldDefinitions = [
     {name: '_sync', type: 'integer'},
     {name: 'code', type: 'string'},
     {name: 'address', type: 'string'},
+    {name: 'administration_percent', type: 'real'},
     {name: 'accounts', type: 'array', fields: [
         {name:'user', type: 'string'},
         {name: 'percent', type: 'real'}

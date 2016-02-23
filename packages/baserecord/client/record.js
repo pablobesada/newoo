@@ -11,6 +11,8 @@ ListViewDefinition = function(collection, record_template, record_class, cur_rec
         instance.event_handler = record_class.prototype.eventHandlers;
         instance.fields_map = {};
         instance.columns = thisRecordDefinition.listview_definition;
+        instance.sort_column = new ReactiveVar(instance.columns[0]);
+        instance.sort_direction = new ReactiveVar(1);
         if (!record_class.prototype.eventHandlers) record_class.prototype.eventHandlers = {};
         record_class.prototype.fieldDefinitions.forEach(function (f) {
             if (f.type != 'array') {
@@ -26,7 +28,9 @@ ListViewDefinition = function(collection, record_template, record_class, cur_rec
         });
         instance.autorun(function () {
             var limit = instance.limit.get();
-            subscription = instance.subscribe(collection._name, {msg: 'record', options: {limit: limit}}, {
+            var sort = {}
+            sort[Template.instance().sort_column.get().field] = Template.instance().sort_direction.get();
+            subscription = instance.subscribe(collection._name, {msg: 'record', options: {limit: limit, sort: sort}}, {
                 onStop: function (error) {
                     console.log("en OnStop de Subscribe " + collection._name + "  " + error);
                 }
@@ -40,7 +44,9 @@ ListViewDefinition = function(collection, record_template, record_class, cur_rec
 
     this.recordlist_helpers = {
         records: function () {
-            var cursor = collection.find({}, {sort: {number: 1}});
+            var sort = {}
+            sort[Template.instance().sort_column.get().field] = Template.instance().sort_direction.get();
+            var cursor = collection.find({}, {sort: sort});
             return cursor;
         },
         current: function () {
@@ -62,7 +68,17 @@ ListViewDefinition = function(collection, record_template, record_class, cur_rec
         },
         get_column_value: function (rec, column_idx) {
             return rec[Template.instance().columns[column_idx]];
+        },
+        is_sort_column: function (column) {
+            return Template.instance().sort_column.get() === column;
+        },
+        get_sort_direction_glyph_class: function (column) {
+            if (Template.instance().sort_direction.get() == 1) return "glyphicon-sort-by-attributes";
+            return "glyphicon-sort-by-attributes-alt";
         }
+
+
+
     };
 
 
@@ -70,18 +86,7 @@ ListViewDefinition = function(collection, record_template, record_class, cur_rec
         "click .js-add-record": function (event, template) {
             event.preventDefault();
             //var record = Object.create(record_class);
-            var record = {};
-            record_class.prototype.fieldDefinitions.forEach(function (field) {
-                if (field.type == 'array') {
-                    if (!record[field.name]) record[field.name] = [];
-                } else {
-                    record[field.name] = BaseRecord.utils['blank_' + field.type];
-                }
-            });
-            decorateRecord(record, record_class.prototype.fieldDefinitions);
-            if (template.event_handler) {
-                if (template.event_handler['onCreate']) template.event_handler['onCreate'](record);
-            }
+            var record = BaseRecord.createRecord(record_class, template);
             setWindowRecord(template.cur_rec, record, record_class.prototype.fieldDefinitions)
         },
         "click .js-record-row": function (event, template) {
@@ -107,6 +112,15 @@ ListViewDefinition = function(collection, record_template, record_class, cur_rec
                 }
             }
         },
+        'click .js-column': function (event, template) {
+            event.preventDefault();
+            if (this === template.sort_column.get()) {
+                template.sort_direction.set(-template.sort_direction.get())
+            } else {
+                template.sort_column.set(this);
+                template.sort_direction.set(1);
+            }
+        }
     };
 };
 
@@ -201,9 +215,13 @@ ViewDefinition = function(collection, record_template, record_class, cur_rec) {
     var thisRecordDefinition = this;
 
     this.recordview_onCreated = function() {
+        console.log("record:oncreated");
         var instance = this;
+        thisRecordDefinition.template = instance;
         instance.cur_rec = cur_rec;
         if (instance.data.record_variable) {
+            console.log("record variable");
+            console.log(instance.data.record_variable.get());
             instance.cur_rec = instance.data.record_variable;
         }
         instance.event_handler = record_class.prototype.eventHandlers;
@@ -245,7 +263,7 @@ ViewDefinition = function(collection, record_template, record_class, cur_rec) {
         instance.autorun( function () {
             var rec = instance.cur_rec.get();
             if (!rec) return;
-            subscription = instance.subscribe(collection._name, {query: {_id: rec._id}, options: {limit: 1}}, {
+            var subscription1 = instance.subscribe(collection._name, {query: {_id: rec._id}, options: {limit: 1}}, {
                 onStop: function () {
                     if (instance.observerHandle)
                     {
@@ -254,6 +272,7 @@ ViewDefinition = function(collection, record_template, record_class, cur_rec) {
                     }
                 }
             })
+
             if (this.observerHandle) this.observerHandle.stop();
             var cursor = collection.find({_id: rec._id});
             instance.observerHandle = cursor.observe({
@@ -435,6 +454,7 @@ ViewDefinition = function(collection, record_template, record_class, cur_rec) {
                     } else {
                         console.log("error returned from save")
                         console.log(arguments);
+                        setWindowRecord(template.cur_rec, record, record_class.prototype.fieldDefinitions)
                     }
                 });
                 //setWindowRecord(template.cur_rec, record, record_class.prototype.fieldDefinitions)
@@ -466,13 +486,10 @@ BaseRecord.registerRecord = function (collection, record_class) {
     var viewdef = new ViewDefinition(collection, record_template, record_class, cur_rec);
     Template[record_template].onCreated(viewdef.recordview_onCreated);
     Template[record_template].onRendered(function () {
-        this.$('.input-group.date').datepicker({
-            format: "yyyy-mm-dd",
-            autoclose: true,
-        });
+        console.log("rendered");
     });
     Template[record_template].helpers(viewdef.record_helpers);
-    Template[record_template].events(viewdef.record_events);
+    Template[record_template].events(viewdef.record_events);;
     return listviewdef;
 }
 
@@ -480,3 +497,18 @@ BaseRecord.records = {}
 BaseRecord.setWindowRecord = setWindowRecord;
 
 
+BaseRecord.createRecord = function(record_class, template){
+    var record = {};
+    record_class.prototype.fieldDefinitions.forEach(function (field) {
+        if (field.type == 'array') {
+            if (!record[field.name]) record[field.name] = [];
+        } else {
+            record[field.name] = BaseRecord.utils['blank_' + field.type];
+        }
+    });
+    decorateRecord(record, record_class.prototype.fieldDefinitions);
+    if (template.event_handler) {
+        if (template.event_handler['onCreate']) template.event_handler['onCreate'](record);
+    }
+    return record;
+}

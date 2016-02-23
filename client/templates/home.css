@@ -19,3 +19,16 @@ body {
 .apartment[is_current_apartment=true] {
     background: red;
 }
+
+.listview_header {
+    table-layout:fixed;
+}
+
+.listview_content {
+    height:180px;
+    overflow-y:auto;
+}
+
+.listview_content>table{
+    table-layout:fixed;
+}

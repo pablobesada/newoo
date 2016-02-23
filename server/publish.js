@@ -13,6 +13,7 @@ Meteor.publish('Transactions', function(args) {
     return Transactions.find(query, options)
 });
 
+
 /*
 var trans_count = [];
 var trans_count_initialized = false;

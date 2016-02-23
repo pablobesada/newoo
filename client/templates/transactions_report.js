@@ -34,7 +34,11 @@ Template.transactions_report.helpers( {
         end = instance.parameters.get().end;
         apartment = instance.parameters.get().apartment;
         var query = {date: {$gte: start, $lte: end}}
-        if (apartment) query.apartment = apartment;
+        if (apartment) {
+            query.apartment = apartment;
+        } else {
+            query.apartment = null;
+        }
         return Transactions.find(query, {sort: {number:-1}});
     },
     'currencies': ['ARS', 'USD'],
@@ -48,7 +52,7 @@ Template.transactions_report.helpers( {
     },
     'get_amount': function(user, currency) {
         balance = trans_count.findOne({user: user, currency: currency});
-        return (balance && balance.amount) || 0.0;
+        return ((balance && balance.amount) || 0.0).toFixed(2);
     },
     'get_total': function (currency) {
         balances = trans_count.find({currency: currency}).fetch();
@@ -56,7 +60,7 @@ Template.transactions_report.helpers( {
         _(balances).each(function (doc) {
             res += doc.amount;
         })
-        return res;
+        return res.toFixed(2);
     },
     'start': function () {
         return Template.instance().parameters.get().start;
@@ -80,7 +84,8 @@ Template.transactions_report.helpers( {
     },
     'isCurrentApartment': function (apartment_code) {
         //  console.log(Template.instance().cur_rec.get());
-        return Template.instance().parameters.get().apartment === apartment_code;
+        return (Template.instance().parameters.get().apartment === apartment_code) ||
+            (Template.instance().parameters.get().apartment === '' && apartment_code === '')
     },
 })
 
@@ -96,6 +101,11 @@ Template.transactions_report.events( {
         var parameters = template.parameters.get();
         parameters.apartment = event.target.attributes.apartment_code.value;
         template.parameters.set(parameters);
+    },
+    'click .js-new-transaction': function(event, template) {
+        event.preventDefault();
+        var newrec = BaseRecord.createRecord(BaseRecord.records.Transaction.prototype.fieldDefinitions, Template.Transaction_view);
+        BaseRecord.setWindowRecord(Template.instance().cur_rec, newrec, BaseRecord.records.Transaction.prototype.fieldDefinitions);
     },
     'submit .js-transactions_report-form': function (event, template) {
         event.preventDefault();

@@ -1,10 +1,11 @@
 
 BaseRecord = {}
 
-ListViewDefinition = function(collection, record_template, record_class, cur_rec) {
+ListViewDefinition = function(dbcollection_name, collection, record_template, record_class, cur_rec) {
     var thisRecordDefinition = this;
 
     this.listview_onCreated = function () {
+        console.log("collection name:" + collection._name);
         var instance = this;
         instance.cur_rec = cur_rec
         instance.limit = new ReactiveVar(30);
@@ -30,7 +31,7 @@ ListViewDefinition = function(collection, record_template, record_class, cur_rec
             var limit = instance.limit.get();
             var sort = {}
             sort[Template.instance().sort_column.get().field] = Template.instance().sort_direction.get();
-            subscription = instance.subscribe(collection._name, {msg: 'record', options: {limit: limit, sort: sort}}, {
+            subscription = instance.subscribe(dbcollection_name, {options: {limit: limit, sort: sort, collection_name: collection._name}}, {
                 onStop: function (error) {
                     console.log("en OnStop de Subscribe " + collection._name + "  " + error);
                 }
@@ -85,14 +86,19 @@ ListViewDefinition = function(collection, record_template, record_class, cur_rec
     this.recordlist_events = {
         "click .js-add-record": function (event, template) {
             event.preventDefault();
-            //var record = Object.create(record_class);
             var record = BaseRecord.createRecord(record_class, template);
-            setWindowRecord(template.cur_rec, record, record_class.prototype.fieldDefinitions)
+            var cur_rec_variable = new ReactiveVar();
+            var nextTab = BaseRecord.addTab(collection._name + " " + record[template.columns[0].field]);
+            Blaze.renderWithData(Template[record_template], {record_variable: cur_rec_variable}, $("#"+nextTab)[0]);
+            setWindowRecord(cur_rec_variable, record, record_class.prototype.fieldDefinitions);
+
         },
-        "click .js-record-row": function (event, template) {
+        "click .js-record-select": function (event, template) {
             record = this;
-            decorateRecord(record, record_class.prototype.fieldDefinitions);
-            setWindowRecord(template.cur_rec, record, record_class.prototype.fieldDefinitions);
+            var cur_rec_variable = new ReactiveVar();
+            var nextTab = BaseRecord.addTab(collection._name + " " + record[template.columns[0].field]);
+            Blaze.renderWithData(Template[record_template], {record_variable: cur_rec_variable}, $("#"+nextTab)[0]);
+            setWindowRecord(cur_rec_variable, record, record_class.prototype.fieldDefinitions);
         },
         "scroll .js-recordlist_container": function (event, instance) {
             event.preventDefault();
@@ -210,13 +216,12 @@ function setWindowRecord(cur_rec, record, fieldsDef) {
     cur_rec.set(record);
 }
 
-
-ViewDefinition = function(collection, record_template, record_class, cur_rec) {
+ViewDefinition = function(dbcollection_name, collection, record_template, record_class, cur_rec) {
     var thisRecordDefinition = this;
-
     this.recordview_onCreated = function() {
         console.log("record:oncreated");
         var instance = this;
+        this.alerts = new ReactiveVar([]);
         thisRecordDefinition.template = instance;
         instance.cur_rec = cur_rec;
         if (instance.data.record_variable) {
@@ -261,10 +266,12 @@ ViewDefinition = function(collection, record_template, record_class, cur_rec) {
         }
 
         instance.autorun( function () {
+            console.log("en template:autorun")
             var rec = instance.cur_rec.get();
             if (!rec) return;
-            var subscription1 = instance.subscribe(collection._name, {query: {_id: rec._id}, options: {limit: 1}}, {
+            var subscription1 = instance.subscribe(dbcollection_name, {query: {_id: rec._id}, options: {limit: 1}}, {
                 onStop: function () {
+                    console.log("subscription stop")
                     if (instance.observerHandle)
                     {
                         instance.observerHandle.stop();
@@ -272,22 +279,27 @@ ViewDefinition = function(collection, record_template, record_class, cur_rec) {
                     }
                 }
             })
-
-            if (this.observerHandle) this.observerHandle.stop();
-            var cursor = collection.find({_id: rec._id});
-            instance.observerHandle = cursor.observe({
-                changed: function (newDocument, oldDocument, index) {
-                    console.log("record changed");
-                    if (rec && oldDocument._id == rec._id) {
-                        setWindowRecord(instance.cur_rec, newDocument, record_class.prototype.fieldDefinitions);
+            if (this.observerHandle) {
+                this.observerHandle.stop();
+                this.observerHandle = null;
+            }
+            if (subscription1.ready()) {
+                console.log("subscription ready")
+                var cursor = collection.find({_id: rec._id});
+                instance.observerHandle = cursor.observe({
+                    changed: function (newDocument, oldDocument, index) {
+                        console.log("record changed");
+                        if (rec && oldDocument._id == rec._id) {
+                            setWindowRecord(instance.cur_rec, newDocument, record_class.prototype.fieldDefinitions);
+                        }
+                    },
+                    removed: function (oldDocument, index) {
+                        if (rec && oldDocument._id == rec._id) {
+                            setWindowRecord(instance.cur_rec, null, record_class.prototype.fieldDefinitions);
+                        }
                     }
-                },
-                removed: function (oldDocument, index) {
-                    if (rec && oldDocument._id == rec._id) {
-                        setWindowRecord(instance.cur_rec, null, record_class.prototype.fieldDefinitions);
-                    }
-                }
-            })
+                })
+            }
         })
     };
 
@@ -333,6 +345,9 @@ ViewDefinition = function(collection, record_template, record_class, cur_rec) {
         get_input_template: function(ftype) {
             return ftype + "_input";
         },
+        get_alerts: function () {
+            return Template.instance().alerts.get();
+        }
     };
 
     this.record_events = {
@@ -413,10 +428,15 @@ ViewDefinition = function(collection, record_template, record_class, cur_rec) {
             var canDelete = true;
             if (template.event_handler) {
                 if (template.event_handler["canDelete"]) canDelete = template.event_handler["canDelete"](record);
+                if (typeof canDelete === "string")
+                {
+                    alert(canDelete);
+                    return;
+                }
             }
-            if (canDelete) {
+            if (canDelete === true) {
                 if (window.confirm("Seguro quieres borrar este registro?")) {
-                    Meteor.call("baserecord_delete", collection._name, this._id, function () {
+                    Meteor.call("baserecord_delete", dbcollection_name, this._id, this._sync, function () {
                         setWindowRecord(template.cur_rec, null, record_class.prototype.fieldDefinitions)
                     });
                 }
@@ -432,16 +452,29 @@ ViewDefinition = function(collection, record_template, record_class, cur_rec) {
             var canSave = true;
             if (template.event_handler) {
                 if (template.event_handler["canSave"]) canSave = template.event_handler["canSave"](record);
-                if (canSave && template.event_handler["beforeSave"]) {
+                console.log(canSave)
+                if (typeof canSave === "string")
+                {
+                    var alerts = template.alerts.get();
+                    alerts.push({type:'danger', title: canSave});
+                    template.alerts.set(alerts);
+                    Meteor.defer(function () {
+                        $(".alert").delay(4000).slideUp(200, function () {
+                            $(this).alert('close');
+                        });
+                    });
+                    return;
+                }
+                if (canSave===true && template.event_handler["beforeSave"]) {
                     template.event_handler["beforeSave"](record);
                     //setWindowRecord(template.cur_rec, record, record_class.prototype.fieldDefinitions)
                 }
             }
-            if (canSave) {
+            if (canSave === true) {
                 undecorateRecord(record, record_class.prototype.fieldDefinitions);
                 //record.accounts[0].pepito = 'yuyu'
                 //setWindowRecord(template.cur_rec, null, record_class.prototype.fieldDefinitions)
-                Meteor.call("baserecord_save", collection._name, record, function (error, result) {
+                Meteor.call("baserecord_save", dbcollection_name, record, function (error, result) {
 
                     if (!error && result.ok) {
 
@@ -470,20 +503,22 @@ BaseRecord.utils.blank_integer = 0;
 BaseRecord.utils.blank_real = 0.0;
 
 
-BaseRecord.registerRecord = function (collection, record_class) {
-    var recordlist_template = collection._name + "_listview";
-    var record_template = collection._name + "_view";
+BaseRecord.registerRecord = function (record_class) {
+    var dbcollection_name = record_class.prototype.collection_name;
+    collection = new Mongo.Collection(dbcollection_name + "_listview")
+    var recordlist_template = dbcollection_name + "_listview";
+    var record_template = dbcollection_name + "_view";
     var cur_rec = new ReactiveVar(null);
 
     Template[recordlist_template] = new Template(recordlist_template, Template.recordlist.renderFunction);
-    var listviewdef = new ListViewDefinition(collection, record_template, record_class, cur_rec);
+    var listviewdef = new ListViewDefinition(dbcollection_name, collection, record_template, record_class, cur_rec);
     Template[recordlist_template].onCreated(listviewdef.listview_onCreated);
     Template[recordlist_template].onRendered(function () {});
     Template[recordlist_template].onDestroyed(listviewdef.listview_onDestroy);
     Template[recordlist_template].helpers(listviewdef.recordlist_helpers);
     Template[recordlist_template].events(listviewdef.recordlist_events);
     Template[record_template] = new Template(record_template, Template.record.renderFunction);
-    var viewdef = new ViewDefinition(collection, record_template, record_class, cur_rec);
+    var viewdef = new ViewDefinition(dbcollection_name, collection, record_template, record_class, cur_rec);
     Template[record_template].onCreated(viewdef.recordview_onCreated);
     Template[record_template].onRendered(function () {
         console.log("rendered");
@@ -497,7 +532,7 @@ BaseRecord.records = {}
 BaseRecord.setWindowRecord = setWindowRecord;
 
 
-BaseRecord.createRecord = function(record_class, template){
+BaseRecord.createRecord = function(record_class){
     var record = {};
     record_class.prototype.fieldDefinitions.forEach(function (field) {
         if (field.type == 'array') {
@@ -506,9 +541,19 @@ BaseRecord.createRecord = function(record_class, template){
             record[field.name] = BaseRecord.utils['blank_' + field.type];
         }
     });
-    decorateRecord(record, record_class.prototype.fieldDefinitions);
-    if (template.event_handler) {
-        if (template.event_handler['onCreate']) template.event_handler['onCreate'](record);
+    //decorateRecord(record, record_class.prototype.fieldDefinitions);
+    if (record_class.prototype.eventHandlers) {
+        if (record_class.prototype.eventHandlers['onCreate']) record_class.prototype.eventHandlers['onCreate'](record);
     }
     return record;
 }
+
+
+BaseRecord.addTab = function (title) {
+    var nextTab = "tab_" + new Meteor.Collection.ObjectID()._str;
+    if (!title) title = "New Tab ";
+    $('<li><a href="#' + nextTab + '" data-toggle="tab">' + title + '&nbsp;&nbsp;<span class="js-remove-tab" tab="'+nextTab+'">&times;</span></a></li>').insertAfter('#tabs li:nth-last-child(2)');
+    $('<div class="tab-pane fade" id="' + nextTab + '"></div>').appendTo('.tab-content');
+    $('#tabs li:nth-last-of-type(2) a').tab('show');
+    return nextTab;
+};

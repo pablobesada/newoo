@@ -8,12 +8,20 @@ Template.home.helpers({
     },
     counter: function () {
         return Session.get('counter');
-    }
+    },
 });
 
 Template.home.events({
-    'click button': function () {
-        // increment the counter when button is clicked
-        Session.set('counter', Session.get('counter') + 1);
+    'click #addTab': function (event, template) {
+        console.log("add tab");
+        var nextTab = BaseRecord.addTab();
+
+        //Blaze.renderWithData(Template.transactions_report, {}, $("#tab"+nextTab)[0])
+        //Blaze.renderWithData(Template.Transactions_listview, {}, $("#tab"+nextTab)[0])
+    },
+    'click .js-remove-tab': function (event, template) {
+        template.$("#"+event.target.attributes.tab.value).remove()
+        //console.log(event);
+        template.$(event.target).parents("li").remove();
     }
 });

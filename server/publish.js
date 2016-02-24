@@ -1,17 +1,57 @@
-Meteor.publish('Apartments', function() {
-    return Apartments.find({});
-});
 
-Meteor.publish('Transactions', function(args) {
-
+function genericPublish(params) {
+    var instance = this;
     //Meteor._sleepForMs(2000);
-    console.log(args.msg);
+    console.log("Publish de " + this._name);
+    console.log(this._name);
+    var args = params || {};
     var options = args.options || {};
     var query = args.query || {};
+    var clientCollection = options.collection_name || this._name
     console.log(["publishing query: ",query]);
     console.log(["publishing options: ",options]);
-    return Transactions.find(query, options)
-});
+    //return Transactions.find(query, options);
+    var collection = eval(this._name);
+    var cursor = collection.find(query, options)
+
+    var initializing = true;
+    var handle = cursor.observeChanges({
+        added: function(id, doc) {
+            if (!initializing) {
+                console.log("adding.. " + doc.number);
+                instance.added(clientCollection, id, doc);
+            }
+        },
+        changed: function(id, doc) {
+            console.log("trying changed.. " + doc.number);
+
+            if (!initializing) instance.changed(clientCollection, id, doc);
+        },
+        removed: function(id) {
+            console.log("trying removed.. " + id);
+
+            if (!initializing) instance.removed(clientCollection, id);
+        },
+        error: function (err) {
+            throw err;
+        }
+    });
+
+    initializing = false;
+    _(cursor.fetch()).forEach(function (doc) {
+        instance.added(clientCollection, doc._id, doc);
+    });
+    // mark the subscription as ready
+    instance.onStop(function () {
+        handle.stop();
+    });
+
+    instance.ready();
+}
+
+Meteor.publish('Transactions', genericPublish);
+Meteor.publish('Apartments', genericPublish);
+
 
 
 /*

@@ -9,7 +9,10 @@ var listview_definition = [
     {label: 'monto', field: 'amount'}];
 
 var view_definition = {'number':'numero', 'date': 'fecha', 'description': 'descripcion', 'apartment': 'depto', 'currency': 'moneda', 'amount': 'monto'}
-var Transaction = function() {};
+
+var Transaction = function() {}
+Transaction.prototype.collection_name ="Transactions";
+
 
 Transaction.prototype.fieldDefinitions = [
     {name: '_sync', type: 'integer'},
@@ -45,7 +48,6 @@ Transaction.prototype.eventHandlers = {
         });
     },
     "changed amount": function (record, fieldname) {
-        record.description = record.description + "A";
         record.accounts.forEach(function (row) {
             row.amount = record.amount * row.percent / 100.0;
         })
@@ -65,8 +67,10 @@ Transaction.prototype.eventHandlers = {
     "canSave": function (record) {
         var sumup = record.accounts.reduce(function (row1, row2) {return {amount: row1.amount+row2.amount, percent: row1.percent+row2.percent}}, {amount: 0, percent: 0});
         console.log(sumup);
-        if (sumup.percent != 100.0) return false;
-        if (sumup.amount != record.amount) return false;
+        var currencies = ['ARS', 'USD']
+        if (sumup.percent != 100.0) return "Los porcentajes deben sumar 100";
+        if (sumup.amount != record.amount) return "Los montos en las cuentas deben ser iguales al monto total";
+        if (currencies.indexOf(record.currency) < 0) return "La moneda es incorrecta";
         return true;
     },
     "beforeSave": function (record) {
@@ -112,7 +116,7 @@ Transaction.prototype.eventHandlers = {
 
 console.log("en transactions.js")
 
-listviewdef = BaseRecord.registerRecord(Transactions, Transaction);
+listviewdef = BaseRecord.registerRecord(Transaction);
 listviewdef.listview_definition = listview_definition;
 
 BaseRecord.records.Transaction = Transaction
@@ -122,4 +126,5 @@ Template.Transactions_view.onCreated(function () {
     var instance = this;
     var subscription2 = instance.subscribe("Transactions", {query: {}, options: {sort: {number: -1}, limit: 1}});
     console.log("Transactions_view:oncreated")
+
 })

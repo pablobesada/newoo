@@ -1,7 +1,19 @@
 <template name="home">
-    <div class="container">
-        <div class="panel-group">
-            {{> Template.dynamic template=get_template}}
+    <ul class="nav nav-tabs" id="tabs">
+        <li class="active"><a data-toggle="tab" href="#tab1">Transactions</a></li>
+        <li><a data-toggle="tab" href="#tab2">Apartments</a></li>
+        <li><a data-toggle="tab" href="#tab3">Listado de Movimientos</a></li>
+        <li><a href="#" id="addTab">+</a></li>
+    </ul>
+    <div class="container tab-content">
+        <div class="tab-pane fade in active" id="tab1">
+            {{> Template.dynamic template='Transactions_listview'}}
+        </div>
+        <div class="tab-pane fade in" id="tab2">
+            {{> Template.dynamic template='Apartments_listview'}}
+        </div>
+        <div class="tab-pane fade in" id="tab3">
+            {{> Template.dynamic template='transactions_report'}}
         </div>
     </div>
 </template>

@@ -1,16 +1,18 @@
 
 var History = function() {}
+History.prototype.collection_name ="Histories"
 
 History.prototype.fieldDefinitions = record_fields = [
     ['_sync', 'integer'],
     ['collection', 'string'],
     ['timestamp', 'timestamp'],
-    ['username', 'string'],
+    ['user', 'string'],
     ['action', 'string'],
-    ['oldRecord', 'object'],
-    ['newRecord', 'object'],
+    ['record', 'object'],
+    ['new_id', 'string'],
+    ['old_id', 'string'],
 ];
 
 
 
-BaseRecord.registerRecord(Histories, History);
+BaseRecord.registerRecord(History);

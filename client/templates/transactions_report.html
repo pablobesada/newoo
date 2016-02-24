@@ -64,7 +64,7 @@
                 <tbody>
                 {{#each trans in transactions}}
                     {{#with trans}}
-                        <tr class="js-record-row">
+                        <tr class="js-record-select">
                             <td>{{trans.number}}</td>
                             <td>{{trans.date}}</td>
                             <td>{{trans.apartment}}</td>
@@ -85,6 +85,4 @@
         </div>
     </div>
     <hr>
-    {{> Transactions_view record_variable=cur_record}}
-
 </template>

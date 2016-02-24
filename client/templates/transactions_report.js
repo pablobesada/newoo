@@ -17,6 +17,7 @@ Template.transactions_report.onCreated(function () {
         var query = {date: {$gte: start, $lte: end}}
         if (apartment) query.apartment = apartment;
         transactions_subscription = instance.subscribe('Transactions', {query: query});
+        transactions_subscription.ready()
     })
 });
 
@@ -37,7 +38,7 @@ Template.transactions_report.helpers( {
         if (apartment) {
             query.apartment = apartment;
         } else {
-            query.apartment = null;
+            query.apartment = '';
         }
         return Transactions.find(query, {sort: {number:-1}});
     },
@@ -80,6 +81,7 @@ Template.transactions_report.helpers( {
         return Template.instance().cur_rec;
     },
     'get_apartments': function () {
+        console.log(Apartments.find({},{sort:{code:1}}).count())
         return Apartments.find({},{sort:{code:1}})
     },
     'isCurrentApartment': function (apartment_code) {
@@ -90,11 +92,14 @@ Template.transactions_report.helpers( {
 })
 
 Template.transactions_report.events( {
-    "click .js-record-row": function (event, template) {
-        console.log("clicked");
-        console.log(this)
-        BaseRecord.setWindowRecord(Template.instance().cur_rec, this, BaseRecord.records.Transaction.prototype.fieldDefinitions);
-        //template.cur_rec.set(this);
+    "click .js-record-select": function (event, template) {
+        event.preventDefault()
+        record = this;
+        var cur_rec_variable = new ReactiveVar();
+        var nextTab = BaseRecord.addTab("Transactions" + " " + record.number);
+        Blaze.renderWithData(Template["Transactions_view"], {record_variable: cur_rec_variable}, $("#"+nextTab)[0]);
+        BaseRecord.setWindowRecord(cur_rec_variable, record, BaseRecord.records.Transaction.prototype.fieldDefinitions);
+
     },
     'click .js-apartment': function(event, template) {
         event.preventDefault();
@@ -104,8 +109,11 @@ Template.transactions_report.events( {
     },
     'click .js-new-transaction': function(event, template) {
         event.preventDefault();
-        var newrec = BaseRecord.createRecord(BaseRecord.records.Transaction.prototype.fieldDefinitions, Template.Transaction_view);
-        BaseRecord.setWindowRecord(Template.instance().cur_rec, newrec, BaseRecord.records.Transaction.prototype.fieldDefinitions);
+        var newrec = BaseRecord.createRecord(BaseRecord.records.Transaction);
+        var cur_rec_variable = new ReactiveVar();
+        var nextTab = BaseRecord.addTab("Transactions" + " " + record.number);
+        Blaze.renderWithData(Template["Transactions_view"], {record_variable: cur_rec_variable}, $("#"+nextTab)[0]);
+        BaseRecord.setWindowRecord(cur_rec_variable, newrec, BaseRecord.records.Transaction.prototype.fieldDefinitions);
     },
     'submit .js-transactions_report-form': function (event, template) {
         event.preventDefault();

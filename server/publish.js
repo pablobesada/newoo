@@ -53,68 +53,6 @@ Meteor.publish('Transactions', genericPublish);
 Meteor.publish('Apartments', genericPublish);
 
 
-
-/*
-var trans_count = [];
-var trans_count_initialized = false;
-Meteor.publish('Account_Balances', function () {
-    console.log("en publish account_balances");
-    self = this;
-    var initializing = true;
-
-    var refresh = function() {
-        balances = Transactions.aggregate([{$match: {}}, {$unwind: "$accounts"}, {
-            $group: {
-                _id: {
-                    user: "$accounts.user",
-                    currency: "$currency"
-                }, total: {$sum: "$accounts.amount"}
-            }
-        }]);
-        console.log(trans_count);
-        _(trans_count).each(function (doc) {
-            console.log("removing: " + doc._id);
-            self.removed('trans_count', doc._id);
-        });
-        trans_count.length = 0;
-        _(balances).each(function (balance) {
-            console.log("adding: " + balance._id + ": " + balance.total);
-            var newId = new Mongo.ObjectID()._str;
-            var doc = {_id: newId, currency: balance._id.currency, user: balance._id.user, total: balance.total};
-            self.added('trans_count', newId, doc);
-            trans_count.push(doc);
-        });
-        trans_count_initialized = true;
-        self.ready();
-    }
-    var observerHandler = Transactions.find({}).observe({
-        added: function() {
-            if (!initializing) refresh();
-        },
-        changed: function() {
-            console.log("observed see change, initializing: " + initializing);
-            if (!initializing) refresh();
-        },
-        removed: function() {
-            if (!initializing) refresh();
-        },
-    });
-    initializing = false;
-    if (trans_count_initialized) {
-        console.log("serving from cache");
-        _(trans_count).each(function(doc) {
-            self.added("trans_count", doc._id, doc);
-        });
-        self.ready();
-    } else {
-        refresh();
-    }
-    self.onStop(function () {
-        observerHandler.stop();
-    });
-})
-*/
-
 Meteor.publish("Account_Balances", function () {
     ReactiveAggregate(this, Transactions,[{$match: {}}, {$unwind: "$accounts"}, {
         $group: {
@@ -127,6 +65,22 @@ Meteor.publish("Account_Balances", function () {
     ], { clientCollection: "trans_count" });
 });
 
+Meteor.publish("Transactions_Grouped_By_Month", function (params) {
+    var args = params || {};
+    var options = args.options || {};
+    var query = args.query || {};
+    ReactiveAggregate(this, Transactions,[{$match: query}, {$unwind: "$accounts"},
+        {$group: {
+            _id: {
+                year: {$substr: ['$date', 0, 4]},
+                month: {$substr: ['$date', 5, 2]},
+                apartment: "$apartment",
+                user: "$accounts.user"
+            },
+            amount: {$sum: '$accounts.amount'}}},
+        {$project: {_id: {$concat: ["$_id.year", "-", "$_id.month", "|", "$_id.apartment", "|", "$_id.user"]}, apartment: "$_id.apartment", month: {$concat: ["$_id.year", "-", "$_id.month"]}, amount: "$amount", user: "$_id.user"}}
+    ], { clientCollection: "Transactions_Grouped_By_Month" });
+});
 
 Meteor.publish('History', function() {
     return History.find({});

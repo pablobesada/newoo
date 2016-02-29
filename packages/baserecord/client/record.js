@@ -557,3 +557,33 @@ BaseRecord.addTab = function (title) {
     $('#tabs li:nth-last-of-type(2) a').tab('show');
     return nextTab;
 };
+
+BaseRecord.setupScrollTables = function () {
+    console.log("en setupScrollTables")
+    // Change the selector if needed
+    var $table = $('table.scroll'),
+        $bodyCells = $table.find('tbody tr:first').children(),
+        colWidth;
+
+// Adjust the width of thead cells when window resizes
+    $(window).resize(function() {
+        // Get the tbody columns width array
+        colWidth = $bodyCells.map(function() {
+            return $(this).css('width');
+        }).get();
+
+        // Set the width of thead columns
+        $table.find('thead tr').children().each(function(i, v) {
+            $(v).css('max-width', colWidth[i]);
+            $(v).css('width', colWidth[i]);
+        });
+    }).resize(); // Trigger resize handler
+}
+
+Template.registerHelper('tab_id', function () {
+    console.log("tab_id")
+    console.log(Template.instance());
+    console.log(Template.instance().firstNode);
+    console.log($(Template.instance().firstNode).parent(".tab-pane").attr("id"));
+    return $(Template.instance().firstNode).parent(".tab-pane").attr("id");
+})

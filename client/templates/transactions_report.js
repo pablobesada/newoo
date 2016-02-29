@@ -1,22 +1,30 @@
 trans_count = new Mongo.Collection("trans_count");
 
 Template.transactions_report.onCreated(function () {
-    instance = this;
-    instance.cur_rec = ReactiveVar(null);
-    instance.parameters = new ReactiveVar({
-        start: moment().subtract(90, 'days').format('YYYY-MM-DD'),
-        end: moment().add(3, 'days').format('YYYY-MM-DD'),
-        apartment: '',
-    });
+    var instance =  this;
+    if (instance.data.period) {
+        instance.period = instance.data.period
+    } else {
+        instance.period = new ReactiveVar({
+            start: moment().subtract(3, 'months').format('YYYY-MM-DD'),
+            end: moment().add(3, 'days').format('YYYY-MM-DD'),
+        });
+    }
+    instance.apartment = new ReactiveVar(instance.data.apartment || '');
+    console.log("instance");
+    console.log(instance);
     account_balances_subscription = instance.subscribe('Account_Balances');
-    apartments_subscription = instance.subscribe('Apartments');
+    var apartments_subscription = instance.subscribe('Apartments');
     instance.autorun( function () {
-        start = instance.parameters.get().start;
-        end = instance.parameters.get().end;
-        apartment = instance.parameters.get().apartment;
+        console.log("start")
+        var start = instance.period.get().start;
+        var end = instance.period.get().end;
+        console.log(instance);
+        console.log(instance.apartment);
+        var apartment = instance.apartment.get();
         var query = {date: {$gte: start, $lte: end}}
         if (apartment) query.apartment = apartment;
-        transactions_subscription = instance.subscribe('Transactions', {query: query});
+        var transactions_subscription = instance.subscribe('Transactions', {query: query});
         transactions_subscription.ready()
     })
 });
@@ -31,9 +39,9 @@ Template.transactions_report.onRendered(function () {
 
 Template.transactions_report.helpers( {
     'transactions': function () {
-        start = instance.parameters.get().start;
-        end = instance.parameters.get().end;
-        apartment = instance.parameters.get().apartment;
+        var start = Template.instance().period.get().start;
+        var end = Template.instance().period.get().end;
+        var apartment = Template.instance().apartment.get();
         var query = {date: {$gte: start, $lte: end}}
         if (apartment) {
             query.apartment = apartment;
@@ -44,7 +52,7 @@ Template.transactions_report.helpers( {
     },
     'currencies': ['ARS', 'USD'],
     'users': function () {
-        balances = trans_count.find({}).fetch();
+        var balances = trans_count.find({}).fetch();
         var users = {};
         _(balances).each(function (doc) {
             users[doc.user] = 1;
@@ -52,11 +60,11 @@ Template.transactions_report.helpers( {
         return Object.keys(users);
     },
     'get_amount': function(user, currency) {
-        balance = trans_count.findOne({user: user, currency: currency});
+        var balance = trans_count.findOne({user: user, currency: currency});
         return ((balance && balance.amount) || 0.0).toFixed(2);
     },
     'get_total': function (currency) {
-        balances = trans_count.find({currency: currency}).fetch();
+        var balances = trans_count.find({currency: currency}).fetch();
         res = 0.0
         _(balances).each(function (doc) {
             res += doc.amount;
@@ -64,37 +72,31 @@ Template.transactions_report.helpers( {
         return res.toFixed(2);
     },
     'start': function () {
-        return Template.instance().parameters.get().start;
+        return Template.instance().period.get().start;
     },
     'end': function () {
-        return Template.instance().parameters.get().end;
+        return Template.instance().period.get().end;
     },
     'cur_apartment': function () {
-        return Template.instance().parameters.get().apartment;
+        return Template.instance().apartment.get();
     },
     'isARS': function (currency) {
         return currency == 'ARS'
     },
-    'cur_record': function () {
-        console.log("en cur_record");
-        //  console.log(Template.instance().cur_rec.get());
-        return Template.instance().cur_rec;
-    },
     'get_apartments': function () {
-        console.log(Apartments.find({},{sort:{code:1}}).count())
         return Apartments.find({},{sort:{code:1}})
     },
     'isCurrentApartment': function (apartment_code) {
         //  console.log(Template.instance().cur_rec.get());
-        return (Template.instance().parameters.get().apartment === apartment_code) ||
-            (Template.instance().parameters.get().apartment === '' && apartment_code === '')
+        return (Template.instance().apartment.get() === apartment_code) ||
+            (Template.instance().apartment.get() === '' && apartment_code === '')
     },
-})
+});
 
 Template.transactions_report.events( {
     "click .js-record-select": function (event, template) {
-        event.preventDefault()
-        record = this;
+        event.preventDefault();
+        var record = this;
         var cur_rec_variable = new ReactiveVar();
         var nextTab = BaseRecord.addTab("Transactions" + " " + record.number);
         Blaze.renderWithData(Template["Transactions_view"], {record_variable: cur_rec_variable}, $("#"+nextTab)[0]);
@@ -103,25 +105,30 @@ Template.transactions_report.events( {
     },
     'click .js-apartment': function(event, template) {
         event.preventDefault();
-        var parameters = template.parameters.get();
-        parameters.apartment = event.target.attributes.apartment_code.value;
-        template.parameters.set(parameters);
+        template.apartment.set(template.$(event.target).parent().attr('apartment_code'));
     },
     'click .js-new-transaction': function(event, template) {
         event.preventDefault();
         var newrec = BaseRecord.createRecord(BaseRecord.records.Transaction);
+        newrec.apartment = template.apartment.get();
         var cur_rec_variable = new ReactiveVar();
-        var nextTab = BaseRecord.addTab("Transactions" + " " + record.number);
+        var nextTab = BaseRecord.addTab();
         Blaze.renderWithData(Template["Transactions_view"], {record_variable: cur_rec_variable}, $("#"+nextTab)[0]);
         BaseRecord.setWindowRecord(cur_rec_variable, newrec, BaseRecord.records.Transaction.prototype.fieldDefinitions);
     },
     'submit .js-transactions_report-form': function (event, template) {
         event.preventDefault();
-        parameters = {
+        var period = {
             start:template.$('input[name=start]').val(),
             end: template.$('input[name=end]').val(),
-            apartment: template.$('input[name=apartment]').val(),
-        }
-        template.parameters.set(parameters);
+        };
+        template.period.set(period);
+        template.apartment.set(template.$('input[name=apartment]').val());
     },
-})
+    'click [data-toggle=collapse]': function (event, template) {
+        event.preventDefault();
+        var selector = event.target.attributes.target.value;
+        template.$(selector).collapse('toggle');
+        console.log("TOGGLE");
+    }
+});

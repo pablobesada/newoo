@@ -1,0 +1,43 @@
+<template name="transactions_monthly_report">
+    <div class="transactions_monthly_report">
+
+        <table class="table table-striped table-hover scroll balances">
+            <thead>
+            <tr>
+                <th class="text-center">Mes</th>
+                <th class="text-center">Total</th>
+                {{#each ap in get_apartments}}
+                    <th class="text-nowrap text-center">
+                        {{ap.code}}
+                    </th>
+                {{/each}}
+
+                {{#each user in get_users}}
+                    <th class="text-center">{{user}}</th>
+                {{/each}}
+            </tr>
+            </thead>
+            <tbody style="height: 500px;">
+            {{#each month in get_months}}
+
+                <tr>
+                    <td class="text-nowrap"><strong>{{month}}</strong></td>
+                    <td class="text-center"><strong>{{get_total month}}</strong></td>
+                    {{#each ap in get_apartments}}
+                        <td class="text-center js-apartment-amount" apartment="{{ap.code}}" month="{{month}}">
+                            {{get_apartment_amount month ap.code}}
+                        </td>
+                    {{/each}}
+                    {{#each user in get_users}}
+                        <td class="text-center">
+                            <strong>{{get_user_amount month user}}</strong>
+                        </td>
+                    {{/each}}
+
+                </tr>
+            {{/each}}
+            </tbody>
+        </table>
+
+    </div>
+</template>

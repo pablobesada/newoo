@@ -1,19 +1,44 @@
 <template name="home">
-    <ul class="nav nav-tabs" id="tabs">
-        <li class="active"><a data-toggle="tab" href="#tab1">Transactions</a></li>
-        <li><a data-toggle="tab" href="#tab2">Apartments</a></li>
-        <li><a data-toggle="tab" href="#tab3">Listado de Movimientos</a></li>
-        <li><a href="#" id="addTab">+</a></li>
-    </ul>
-    <div class="container tab-content">
-        <div class="tab-pane fade in active" id="tab1">
-            {{> Template.dynamic template='Transactions_listview'}}
+    <div class="home">
+    {{#if currentUser }}
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-xs-11">
+                    <ul class="nav nav-tabs" id="tabs">
+                        <li  class="active"><a data-toggle="tab" href="#tab2">Informe Mensual</a></li>
+                        <li><a data-toggle="tab" href="#tab1">Listado de Movimientos</a></li>
+                        <li><a data-toggle="tab" href="#tab3">Transactions</a></li>
+                        <li><a data-toggle="tab" href="#tab4">Apartments</a></li>
+                        <li><a href="#" id="addTab">+</a></li>
+                    </ul>
+                </div>
+                <div class="col-xs-1">
+                    {{> loginButtons}}
+                </div>
+            </div>
         </div>
-        <div class="tab-pane fade in" id="tab2">
-            {{> Template.dynamic template='Apartments_listview'}}
+        <div class="container-fluid tab-content home-tab-container">
+            <div class="tab-pane fade in" id="tab1">
+                {{> Template.dynamic template='transactions_report'}}
+            </div>
+            <div class="tab-pane fade in active" id="tab2">
+                {{> Template.dynamic template='transactions_monthly_report'}}
+            </div>
+            <div class="tab-pane fade in " id="tab3" >
+                {{> Template.dynamic template='Transactions_listview'}}
+            </div>
+            <div class="tab-pane fade in" id="tab4">
+                {{> Template.dynamic template='Apartments_listview'}}
+            </div>
         </div>
-        <div class="tab-pane fade in" id="tab3">
-            {{> Template.dynamic template='transactions_report'}}
+    {{else}}
+        <div class="container-fluid container-table loginpage">
+            <div class="row vertical-center-row">
+                <div class="text-center col-md-12">
+                    {{> loginButtons }}
+                </div>
+            </div>
         </div>
+    {{/if}}
     </div>
 </template>

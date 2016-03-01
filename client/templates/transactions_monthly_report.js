@@ -49,10 +49,6 @@ Template.transactions_monthly_report.onRendered(function () {
 Template.transactions_monthly_report.helpers( {
     'get_months': function () {
         console.log(Template.instance().records.get())
-        Meteor.defer(function () {
-            BaseRecord.setupScrollTables();
-        })
-
         return Object.keys(Template.instance().records.get());
     },
     'get_apartment_amount': function (month, apartment) {

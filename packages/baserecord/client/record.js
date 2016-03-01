@@ -313,6 +313,21 @@ ViewDefinition = function(dbcollection_name, collection, record_template, record
                 autoclose: true,
             })});
         },
+        view_fields: function () {
+            var res = [];
+            _(record_class.prototype.view_definition).each( function (label, fn) {
+                console.log(fn);
+                console.log(Template.instance().fields_map);
+                var field = Template.instance().fields_map[fn];
+                field.label = record_class.prototype.view_definition[fn];
+                res.push(field);
+            })
+            return res;
+        },
+        view_field_label: function (fn) {
+            return record_class.prototype.view_definition[fn];
+        },
+
         record: function () {
             return Template.instance().cur_rec.get();
         },
@@ -406,6 +421,7 @@ ViewDefinition = function(dbcollection_name, collection, record_template, record
             }
             //setWindowRecord(template.cur_rec, record, record_class.prototype.fieldDefinitions)
         },
+
         "click .js-delete-row": function (event, template) {
             event.preventDefault();
             var record = template.cur_rec.get();
@@ -442,7 +458,12 @@ ViewDefinition = function(dbcollection_name, collection, record_template, record
                 }
             }
         },
-
+        "click .js-history-record": function (event, template) {
+            event.preventDefault();
+            var nextTab = BaseRecord.addTab("History" + " " + record.number);
+            record = template.cur_rec.get();
+            Blaze.renderWithData(Template["history_report"], {record_number: record.number}, $("#"+nextTab)[0]);
+        },
         "click .js-save-record": function (event, template) {
             // Prevent default browser form submit
             event.preventDefault();
@@ -558,10 +579,11 @@ BaseRecord.addTab = function (title) {
     return nextTab;
 };
 
-BaseRecord.setupScrollTables = function () {
+BaseRecord.setupScrollTables = function (subnode) {
     console.log("en setupScrollTables")
     // Change the selector if needed
-    var $table = $('table.scroll'),
+    if (subnode == null) subnode = 'body';
+    var $table = $(subnode).find('table.scroll'),
         $bodyCells = $table.find('tbody tr:first').children(),
         colWidth;
 

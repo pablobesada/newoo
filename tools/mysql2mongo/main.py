@@ -4,12 +4,19 @@ import pymysql.cursors
 import subprocess
 from pymongo import MongoClient
 from pprint import pprint
+import SimpleHTTPServer
+import SocketServer
+import json
 
-#client = MongoClient('mongodb://127.0.0.1:3001/meteor')
-connstr = subprocess.Popen("meteor mongo --url pdbpdb.meteor.com", shell=True, stdout=subprocess.PIPE).stdout.read().rstrip()
-client = MongoClient(connstr)
-user,password = connstr[10:].split("@")[0].split(":")
-print user,password
+client = None
+
+def connecToMongo():
+    global client
+    client = MongoClient('mongodb://127.0.0.1:3001/meteor')
+    #connstr = subprocess.Popen("meteor mongo --url pdbpdb.meteor.com", shell=True, stdout=subprocess.PIPE).stdout.read().rstrip()
+    #client = MongoClient(connstr)
+    #user,password = connstr[10:].split("@")[0].split(":")
+    #print user,password
 
 #client.meteor.authenticate(user,password)
 
@@ -36,7 +43,7 @@ def transactions():
             docrow['percent'] = row['Percent']
             docrow['amount'] = row['rr.Amount']
             doc['accounts'].append(docrow)
-        collection.insert(doc)
+        collection.update({"number": doc['number']}, doc, upsert = True)
     # Connect to the database
     connection = pymysql.connect(host='104.196.41.0',
                                  user='apartments',
@@ -87,7 +94,7 @@ def apartments():
             docrow['user'] = row['Account']
             docrow['percent'] = row['Percent']
             doc['accounts'].append(docrow)
-        collection.insert(doc)
+        collection.update({"code": doc['code']}, doc, upsert=True)
     # Connect to the database
     connection = pymysql.connect(host='104.196.41.0',
                                  user='apartments',
@@ -120,6 +127,34 @@ def apartments():
     finally:
         connection.close()
 
+
+class WebHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
+
+
+    def do_POST(self):
+        collection = client.meteor['Histories']
+        html = "ACAAAA\n";
+        self.send_response(200)
+        self.send_header("Content-type", "text/html")
+        #self.send_header("Content-length", len(html))
+        self.end_headers()
+        data_string = self.rfile.read(int(self.headers['Content-Length']))
+        doc = json.loads(data_string)
+        d = collection.update({"record.number": doc['record']['number'], "timestamp": doc['timestamp'], "collection": doc['collection']}, doc, upsert=True)
+        print doc['timestamp']
+        self.wfile.write("ok")
+
+def serve():
+    PORT = 8000
+
+    httpd = SocketServer.TCPServer(("", PORT), WebHandler)
+
+    print "serving at port", PORT
+    httpd.serve_forever()
+
+
 if __name__ == "__main__":
-    #transactions()
+    connecToMongo()
+    transactions()
     apartments()
+    #serve()

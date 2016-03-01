@@ -22,8 +22,7 @@
                                 <th>
                                 <span class="js-column">{{col.label}}
                                     {{#if is_sort_column col}}
-                                        <span class="glyphicon {{get_sort_direction_glyph_class}}"
-                                              aria-hidden="true"></span>
+                                        <span class="glyphicon {{get_sort_direction_glyph_class}}" aria-hidden="true"></span>
                                     {{/if}}
                                 </span>
                                 </th>
@@ -68,10 +67,10 @@
                         {{> record_alerts alerts=get_alerts}}
                         <form class="js-record-form" role="form">
                             <div class="row">
-                                {{#each field in fields}}
+                                {{#each field in view_fields}}
                                     <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3">
-                                        {{#let input_template=(get_input_template field.type) fname=field.name ftype=field.type fvalue=(get_field_value record field.name) readonly=(get_field_readonly record field.name)}}
-                                            {{> Template.dynamic template='record_input' data=(create_object input_template=input_template fname=fname ftype=ftype fvalue=fvalue readonly=readonly class='js-record-field')}}
+                                        {{#let input_template=(get_input_template field.type) fname=field.name flabel=field.label ftype=field.type fvalue=(get_field_value record field.name) readonly=(get_field_readonly record field.name)}}
+                                            {{> Template.dynamic template='record_input' data=(create_object input_template=input_template fname=fname flabel=flabel ftype=ftype fvalue=fvalue readonly=readonly class='js-record-field')}}
                                         {{/let}}
                                     </div>
                                 {{/each}}
@@ -125,7 +124,7 @@
 
 <template name="record_input">
     <div class="form-group">
-        <label for="{{fname}}">{{fname}}:</label>
+        <label for="{{fname}}">{{flabel}}:</label>
         {{> Template.dynamic template=input_template}}
     </div>
 </template>

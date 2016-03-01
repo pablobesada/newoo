@@ -82,9 +82,8 @@ Meteor.publish("Transactions_Grouped_By_Month", function (params) {
     ], { clientCollection: "Transactions_Grouped_By_Month" });
 });
 
-Meteor.publish('History', function() {
-    return History.find({});
-});
+Meteor.publish('Histories', genericPublish);
+
 
 Meteor.publish('Currencies', function() {
     return Currencies.find({});

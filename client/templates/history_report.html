@@ -1,0 +1,67 @@
+<template name="history_report">
+    <div class="history_report">
+        <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+
+            <div class="panel panel-default">
+                <div class="panel-heading" role="tab">
+                    <h4 class="panel-title pull-left">
+                        <a role="button" data-toggle="collapse" href="" target="#params_form">
+                            Parametros
+                        </a>
+                    </h4>
+                    <div class="clearfix"></div>
+                </div>
+                <div id="params_form" class="panel-collapse collapse" role="tabpanel">
+                    <div class="panel-body">
+                        <form class="js-history_report-form form-inline" role="form" id="form">
+                            <input type="text" class="input-sm form-control" name="record_number"
+                                   value="{{record_number}}"/>
+                            <input type="submit"/>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading" role="tab">
+                    <h4 class="panel-title pull-left">
+                        <a role="button" data-toggle="collapse" href="" target="#records">
+                            Movimientos
+                        </a>
+                    </h4>
+                    <div class="clearfix"></div>
+                </div>
+                <div id="records" class="panel-collapse collapse in" role="tabpanel">
+
+                    <div class="panel-body">
+                        <div class="listview">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                <tr>
+                                    <th>Accion</th>
+                                    <th>Fecha</th>
+                                    <th>Usuario</th>
+                                </tr>
+                                </thead>
+                            </table>
+                            <div class="listview_content">
+                                <table class="table table-striped table-hover">
+                                    <tbody>
+                                    {{#each rec in records}}
+                                        {{#with rec}}
+                                            <tr class="js-record-select">
+                                                <td>{{rec.action}}</td>
+                                                <td>{{rec.timestamp}}</td>
+                                                <td>{{rec.user}}</td>
+                                            </tr>
+                                        {{/with}}
+                                    {{/each}}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>

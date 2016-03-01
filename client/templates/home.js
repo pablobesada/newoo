@@ -25,3 +25,14 @@ Template.home.events({
         template.$(event.target).parents("li").remove();
     }
 });
+
+Template.home.onRendered(function () {
+    var instance = this;
+    Meteor.defer(function () {
+        instance.$('a[data-toggle=tab]').on('shown.bs.tab', function (e) {
+        var target = $(".home-tab-container>.tab-pane.active")
+        console.log("refitting")
+        BaseRecord.setupScrollTables(target);
+        });
+    });
+})

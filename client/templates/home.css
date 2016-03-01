@@ -110,3 +110,8 @@ table.scroll td, table.scroll th {
     overflow: hidden;
 }
 
+
+tr.table-header>td, tr.table-header>th, td.table-header {
+    background: lightgray;
+    font-weight: bolder;
+}

@@ -12,6 +12,7 @@ var view_definition = {'number':'numero', 'date': 'fecha', 'description': 'descr
 
 var Transaction = function() {}
 Transaction.prototype.collection_name ="Transactions";
+Transaction.prototype.view_definition = view_definition;
 
 
 Transaction.prototype.fieldDefinitions = [

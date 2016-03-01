@@ -52,12 +52,7 @@ Template.transactions_report.helpers( {
     },
     'currencies': ['ARS', 'USD'],
     'users': function () {
-        var balances = trans_count.find({}).fetch();
-        var users = {};
-        _(balances).each(function (doc) {
-            users[doc.user] = 1;
-        })
-        return Object.keys(users);
+        return ['MEC','PDB','DAB','MAB','GMB'];
     },
     'get_amount': function(user, currency) {
         var balance = trans_count.findOne({user: user, currency: currency});

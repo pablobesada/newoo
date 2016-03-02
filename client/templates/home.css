@@ -10,12 +10,12 @@ body {
     height:100%;
     margin: 0px;
     /*font-size: 2em;*/
-
 }
 
 .home {
     height: 100%;
 }
+
 .home .tab-content {
 }
 
@@ -78,7 +78,7 @@ body {
 }
 
 
-.transactions_report .nav-pills > li:not(.active) > a {
+.transactions_report .nav-pills > li:not(.active), .transactions_monthly_report .nav-pills > li:not(.active) > a {
     background: lightgray;
     border: 1px solid black;
 }

@@ -1,6 +1,30 @@
 <template name="transactions_monthly_report">
     <div class="transactions_monthly_report">
 
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab">
+                <h4 class="panel-title">
+                    <a role="button" data-toggle="collapse" href="" target="#options">
+                        Opciones
+                    </a>
+                </h4>
+            </div>
+            <div id="options" class="panel-collapse collapse" role="tabpanel">
+                <div class="panel-body">
+                    <div role="navigation">
+                        <ul class="nav nav-pills">
+                            <li class="js-mode {{#if isCurrentMode 'total'}}active{{/if}}" mode="total">
+                                <a href="#">Totales</a>
+                            </li>
+                            <li class="js-mode {{#if isCurrentMode 'administration'}}active{{/if}}" mode="administration">
+                                <a href="#">Administracion</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <table class="table table-striped table-hover scroll balances">
             <thead>
             <tr class="table-header">

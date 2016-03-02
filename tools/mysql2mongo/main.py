@@ -133,10 +133,8 @@ class WebHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
     def do_POST(self):
         collection = client.meteor['Histories']
-        html = "ACAAAA\n";
         self.send_response(200)
         self.send_header("Content-type", "text/html")
-        #self.send_header("Content-length", len(html))
         self.end_headers()
         data_string = self.rfile.read(int(self.headers['Content-Length']))
         doc = json.loads(data_string)

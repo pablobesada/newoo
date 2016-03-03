@@ -460,6 +460,7 @@ ViewDefinition = function(dbcollection_name, collection, record_template, record
         },
         "click .js-history-record": function (event, template) {
             event.preventDefault();
+            var record = template.cur_rec.get();
             var nextTab = BaseRecord.addTab("History" + " " + record.number);
             record = template.cur_rec.get();
             Blaze.renderWithData(Template["history_report"], {record_number: record.number}, $("#"+nextTab)[0]);

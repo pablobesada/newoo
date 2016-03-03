@@ -1,5 +1,5 @@
 #CMD=`meteor mongo -U pdbpdb.meteor.com | tail -1 | sed 's_mongodb://\([a-z0-9\-]*\):\([a-f0-9\-]*\)@\(.*\)/\(.*\)_mongorestore -u \1 -p \2 -h \3 -d \4_'`
-
+#CMD=`meteor mongo -U pdbpdb.meteor.com | tail -1 | sed 's_mongodb://\([a-z0-9\-]*\):\([a-f0-9\-]*\)@\(.*\)/\(.*\)_mongo -u \1 -p \2 -h \3 -d \4_'`
 import pymysql.cursors
 import subprocess
 from pymongo import MongoClient
@@ -9,22 +9,34 @@ import SocketServer
 import json
 
 client = None
-
+db = None
+k = 0
 def connecToMongo():
     global client
-    client = MongoClient('mongodb://127.0.0.1:3001/meteor')
-    #connstr = subprocess.Popen("meteor mongo --url pdbpdb.meteor.com", shell=True, stdout=subprocess.PIPE).stdout.read().rstrip()
-    #client = MongoClient(connstr)
-    #user,password = connstr[10:].split("@")[0].split(":")
-    #print user,password
+    global db
+    #client = MongoClient('mongodb://127.0.0.1:3001/meteor')
+    connstr = subprocess.Popen("meteor mongo --url pdbpdb.meteor.com", shell=True, stdout=subprocess.PIPE).stdout.read().rstrip()
+    client = MongoClient(connstr)
+    db = client[connstr[connstr.rfind("/")+1:]]
+    user,password = connstr[10:].split("@")[0].split(":")
+    print user,password,db
 
+def testConnection():
+    global client
+    print db
+    print db['Transactions'].find({}).count()
+    lastdoc = db['Transactions'].find({}).sort("record.number", -1).limit(1)
+    pprint(lastdoc[0])
 #client.meteor.authenticate(user,password)
 
 #client.meteor.showCollections()
 
 def transactions():
-    collection = client.meteor['Transactions']
+    global k
+    k = 0
+    collection = db['Transactions']
     def processMySQLRecord(recs):
+        global k
         record = recs[0]
         doc = {}
         doc['number'] = record['SerNr']
@@ -43,7 +55,10 @@ def transactions():
             docrow['percent'] = row['Percent']
             docrow['amount'] = row['rr.Amount']
             doc['accounts'].append(docrow)
-        collection.update({"number": doc['number']}, doc, upsert = True)
+        res = collection.update({"number": doc['number']}, doc, upsert = True)
+        k += 1
+        print doc['number'], k
+
     # Connect to the database
     connection = pymysql.connect(host='104.196.41.0',
                                  user='apartments',
@@ -80,8 +95,11 @@ def transactions():
         connection.close()
 
 def apartments():
-    collection = client.meteor['Apartments']
+    global k
+    k = 0
+    collection = db['Apartments']
     def processMySQLRecord(recs):
+        global k
         record = recs[0]
         doc = {}
         doc['code'] = record['Code']
@@ -94,7 +112,9 @@ def apartments():
             docrow['user'] = row['Account']
             docrow['percent'] = row['Percent']
             doc['accounts'].append(docrow)
-        collection.update({"code": doc['code']}, doc, upsert=True)
+        res = collection.update({"code": doc['code']}, doc, upsert=True)
+        k += 1
+        print res,k
     # Connect to the database
     connection = pymysql.connect(host='104.196.41.0',
                                  user='apartments',
@@ -132,7 +152,7 @@ class WebHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
 
     def do_POST(self):
-        collection = client.meteor['Histories']
+        collection = db['Histories']
         self.send_response(200)
         self.send_header("Content-type", "text/html")
         self.end_headers()
@@ -153,6 +173,7 @@ def serve():
 
 if __name__ == "__main__":
     connecToMongo()
-    transactions()
-    apartments()
-    #serve()
+    #testConnection()
+    #transactions()
+    #apartments()
+    serve()

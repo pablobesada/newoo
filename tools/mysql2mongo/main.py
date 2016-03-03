@@ -187,8 +187,7 @@ def serve():
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
-        print sys.argv[1]
-        exit(0)
+        mode = sys.argv[1]
     connecToMongo()
     #testConnection()
     if 'transactions' in sys.argv: transactions()

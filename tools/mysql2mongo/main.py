@@ -7,26 +7,34 @@ from pprint import pprint
 import SimpleHTTPServer
 import SocketServer
 import json
+import sys
 
 client = None
 db = None
 k = 0
+mode = None
 def connecToMongo():
     global client
     global db
-    #client = MongoClient('mongodb://127.0.0.1:3001/meteor')
-    connstr = subprocess.Popen("meteor mongo --url pdbpdb.meteor.com", shell=True, stdout=subprocess.PIPE).stdout.read().rstrip()
-    client = MongoClient(connstr)
-    db = client[connstr[connstr.rfind("/")+1:]]
-    user,password = connstr[10:].split("@")[0].split(":")
-    print user,password,db
+    global mode
+    mode = "pdbcloud"
+    if mode == "locally":
+        client = MongoClient('mongodb://127.0.0.1:3001/meteor')
+        db = client['meteor']
+    else:
+        #client = MongoClient('mongodb://127.0.0.1:3001/meteor')
+        connstr = subprocess.Popen("meteor mongo --url pdbpdb.meteor.com", shell=True, stdout=subprocess.PIPE).stdout.read().rstrip()
+        client = MongoClient(connstr)
+        db = client[connstr[connstr.rfind("/")+1:]]
+        user,password = connstr[10:].split("@")[0].split(":")
+        print user,password,db
 
 def testConnection():
     global client
     print db
     print db['Transactions'].find({}).count()
-    lastdoc = db['Transactions'].find({}).sort("record.number", -1).limit(1)
-    pprint(lastdoc[0])
+    #lastdoc = db['Transactions'].find({}).sort("record.number", -1).limit(1)
+    #pprint(lastdoc[0])
 #client.meteor.authenticate(user,password)
 
 #client.meteor.showCollections()
@@ -60,7 +68,9 @@ def transactions():
         print doc['number'], k
 
     # Connect to the database
-    connection = pymysql.connect(host='104.196.41.0',
+    host = '104.196.41.0'
+    if mode == 'locally': host = '127.0.0.1'
+    connection = pymysql.connect(host=host,
                                  user='apartments',
                                  password='apartments6565',
                                  db='apartments',
@@ -116,7 +126,9 @@ def apartments():
         k += 1
         print res,k
     # Connect to the database
-    connection = pymysql.connect(host='104.196.41.0',
+    host = '104.196.41.0'
+    if mode == 'locally': host = '127.0.0.1'
+    connection = pymysql.connect(host=host,
                                  user='apartments',
                                  password='apartments6565',
                                  db='apartments',
@@ -124,6 +136,7 @@ def apartments():
                                  cursorclass=pymysql.cursors.DictCursor)
 
     try:
+        all_recs = []
         with connection.cursor() as cursor:
             # Read a single record
             sql = "SELECT * from Apartment r "
@@ -137,16 +150,17 @@ def apartments():
                 if record['internalId'] == id or id is None:
                     recs.append(record)
                 else:
+                    #all_recs.append(recs)
                     processMySQLRecord(recs)
                     recs = []
                     recs.append(record)
                 id = record['internalId']
             if recs:
+                #all_recs.append(recs)
                 processMySQLRecord(recs)
                 recs = []
     finally:
         connection.close()
-
 
 class WebHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
@@ -172,8 +186,11 @@ def serve():
 
 
 if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        print sys.argv[1]
+        exit(0)
     connecToMongo()
     #testConnection()
-    #transactions()
+    transactions()
     #apartments()
-    serve()
+    #serve()

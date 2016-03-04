@@ -53,6 +53,11 @@ Template.transactions_monthly_report.onCreated(function () {
             })
             console.log(data)
             instance.records.set(data);
+            Meteor.defer(function () {
+                    var target = instance.$("div")[0];
+                    BaseRecord.setupScrollTables(target);
+            });
+
         }
     })
 });

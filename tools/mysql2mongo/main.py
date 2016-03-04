@@ -68,7 +68,7 @@ def transactions():
 
     # Connect to the database
     host = '104.196.41.0'
-    if mode == 'locally': host = '127.0.0.1'
+    #if mode == 'locally': host = '127.0.0.1'
     connection = pymysql.connect(host=host,
                                  user='apartments',
                                  password='apartments6565',
@@ -126,7 +126,7 @@ def apartments():
         print res,k
     # Connect to the database
     host = '104.196.41.0'
-    if mode == 'locally': host = '127.0.0.1'
+    #if mode == 'locally': host = '127.0.0.1'
     connection = pymysql.connect(host=host,
                                  user='apartments',
                                  password='apartments6565',

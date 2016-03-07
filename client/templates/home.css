@@ -1,0 +1,79 @@
+html {
+  height: 100%;
+  margin: 0px;
+  box-sizing: border-box; }
+
+body {
+  height: 100%;
+  margin: 0px;
+  /*font-size: 2em;*/ }
+
+.listview_content {
+  height: 500px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0; }
+
+.listview_content > table {
+  table-layout: fixed; }
+
+.container-table {
+  height: 100%;
+  display: table; }
+
+.vertical-center-row {
+  display: table-cell;
+  vertical-align: middle; }
+
+.listview_header_table {
+  margin-bottom: 0px;
+  padding-bottom: 0px;
+  background: lightskyblue; }
+  .listview_header_table th {
+    padding-top: 3px !important;
+    padding-bottom: 3px !important; }
+
+.home {
+  height: 100%; }
+  .home .nav-pills > li {
+    margin: 2px; }
+    .home .nav-pills > li:not(.active) {
+      background: #d9d46d;
+      border-radius: 4px; }
+  .home #login-dropdown-list {
+    top: 20px;
+    left: -200px; }
+  .home .loginpage #login-dropdown-list {
+    top: -50px;
+    left: -100px; }
+  .home .listview.panel {
+    margin-bottom: 0px;
+    margin-top: 0px; }
+  .home .listview .panel-body {
+    margin-top: 0px;
+    padding-top: 0px;
+    padding-left: 0px;
+    padding-right: 0px;
+    padding-bottom: 1px;
+    border: none; }
+  .home .listview table {
+    table-layout: fixed;
+    margin-bottom: 0px;
+    margin: 0px;
+    padding: 0px; }
+  .home table.scroll > tbody, .home table.scroll > thead {
+    display: block; }
+  .home table.scroll > tbody {
+    overflow-y: auto; }
+  .home table.scroll td, .home table.scroll th {
+    border-left: 1px solid black;
+    border-right: 1px solid black;
+    overflow: hidden; }
+  .home tr.table-header > td, .home tr.table-header > th, .home td.table-header {
+    background: lightgray;
+    font-weight: bolder; }
+
+.transactions_report #transactions .panel-body {
+  padding: 0px; }
+
+/*# sourceMappingURL=home.css.map */

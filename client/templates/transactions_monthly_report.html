@@ -20,6 +20,17 @@
                                 <a href="#">Administracion</a>
                             </li>
                         </ul>
+
+                        <ul class="nav nav-pills">
+                            <li class="js-usermode {{#if isCurrentUserMode 'total'}}active{{/if}}" usermode="total">
+                                <a href="#">Todos</a>
+                            </li>
+                            {{#each user in get_users}}
+                                <li class="js-usermode {{#if isCurrentUserMode user}}active{{/if}}" usermode="{{user}}">
+                                    <a href="#">{{user}}</a>
+                                </li>
+                            {{/each}}
+                        </ul>
                     </div>
                 </div>
             </div>

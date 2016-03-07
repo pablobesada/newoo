@@ -1,0 +1,114 @@
+$inactive-pill-background: #d9d46d;
+
+html {
+  height: 100%;
+  margin: 0px;
+  box-sizing: border-box;
+}
+
+body {
+  height: 100%;
+  margin: 0px;
+  /*font-size: 2em;*/
+}
+
+.listview_content {
+  height: 500px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+}
+
+.listview_content > table {
+  table-layout: fixed;
+}
+
+.container-table {
+  height: 100%;
+  display: table;
+}
+
+.vertical-center-row {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+.listview_header_table {
+  margin-bottom: 0px;
+  padding-bottom: 0px;
+  background: lightskyblue;
+  th {
+    padding-top: 3px !important;
+    padding-bottom: 3px !important;
+  }
+}
+
+.home {
+  height: 100%;
+
+  .nav-pills {
+    > li {
+      margin: 2px;
+      &:not(.active) {
+        background: $inactive-pill-background;
+        border-radius: 4px;
+      }
+    }
+  }
+  #login-dropdown-list {
+    top: 20px;
+    left: -200px;
+  }
+  .loginpage #login-dropdown-list {
+    top: -50px;
+    left: -100px;
+  }
+
+  .listview {
+    &.panel {
+      margin-bottom: 0px;
+      margin-top: 0px;
+    }
+    .panel-body {
+      margin-top: 0px;
+      padding-top: 0px;
+      padding-left: 0px;
+      padding-right: 0px;
+      padding-bottom: 1px;
+      border: none;
+    }
+    table {
+      table-layout: fixed;
+      margin-bottom: 0px;
+      margin: 0px;
+      padding: 0px;
+    }
+  }
+
+  table.scroll > tbody, table.scroll > thead {
+    display: block;
+  }
+
+  table.scroll > tbody {
+    overflow-y: auto;
+  }
+
+  table.scroll td, table.scroll th {
+    border-left: 1px solid black;
+    border-right: 1px solid black;
+    overflow: hidden;
+  }
+
+  tr.table-header > td, tr.table-header > th, td.table-header {
+    background: lightgray;
+    font-weight: bolder;
+  }
+
+}
+
+.transactions_report #transactions .panel-body {
+  padding: 0px;
+}
+
+
+

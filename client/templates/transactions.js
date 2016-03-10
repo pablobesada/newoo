@@ -33,20 +33,32 @@ Transaction.prototype.fieldDefinitions = [
 
 Transaction.prototype.eventHandlers = {
     "changed apartment": function (record) {
-        Meteor.call("baserecord_getRecord", "Apartments", {code: record.apartment}, function (error, result) {
-            var apartment = result;
-            console.log(apartment);
-            if (apartment) {
-                record.accounts.length = 0;
-                apartment.accounts.forEach(function (aprow) {
-                    var transRow = {};
-                    transRow.user = aprow.user;
-                    transRow.percent = aprow.percent;
-                    transRow.amount = record.amount * aprow.percent / 100.0;
-                    record.accounts.push(transRow);
-                })
-            }
-        });
+        if (record.apartment) {
+            Meteor.call("baserecord_getRecord", "Apartments", {code: record.apartment}, function (error, result) {
+                var apartment = result;
+                console.log(apartment);
+                if (apartment) {
+                    record.accounts.length = 0;
+                    apartment.accounts.forEach(function (aprow) {
+                        var transRow = {};
+                        transRow.user = aprow.user;
+                        transRow.percent = aprow.percent;
+                        transRow.amount = record.amount * aprow.percent / 100.0;
+                        record.accounts.push(transRow);
+                    })
+                }
+            });
+        } else {
+            record.accounts.length = 0;
+            ['MEC','PDB','DAB','MAB','GMB'].forEach(function (acc) {
+                var transRow = {};
+                transRow.user = acc;
+                transRow.percent = 20.0;
+                transRow.amount = record.amount * transRow.percent / 100.0;
+                record.accounts.push(transRow);
+            })
+
+        }
     },
     "changed amount": function (record, fieldname) {
         record.accounts.forEach(function (row) {

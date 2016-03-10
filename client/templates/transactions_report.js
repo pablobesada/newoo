@@ -106,6 +106,7 @@ Template.transactions_report.events( {
         event.preventDefault();
         var newrec = BaseRecord.createRecord(BaseRecord.records.Transaction);
         newrec.apartment = template.apartment.get();
+        BaseRecord.records.Transaction.prototype.eventHandlers['changed apartment'](newrec);
         var cur_rec_variable = new ReactiveVar();
         var nextTab = BaseRecord.addTab();
         Blaze.renderWithData(Template["Transactions_view"], {record_variable: cur_rec_variable}, $("#"+nextTab)[0]);

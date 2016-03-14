@@ -38,7 +38,7 @@ body {
   .home .nav-pills > li {
     margin: 2px; }
     .home .nav-pills > li:not(.active) {
-      background: #d9d46d;
+      background: #b9d3d9;
       border-radius: 4px; }
   .home #login-dropdown-list {
     top: 20px;
@@ -73,6 +73,10 @@ body {
     background: lightgray;
     font-weight: bolder; }
 
+.transactions_report table.balances th, .transactions_report table.balances td {
+  background: orange; }
+.transactions_report table.balances tr > td:first-of-type {
+  font-weight: bolder; }
 .transactions_report #transactions .panel-body {
   padding: 0px; }
 

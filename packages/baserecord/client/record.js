@@ -536,6 +536,9 @@ ViewDefinition = function(dbcollection_name, collection, record_template, record
                             if (template.event_handler["saved"]) template.event_handler["saved"](record);
                         }
                         setWindowRecord(template.cur_rec, result.record, record_class.prototype.fieldDefinitions)
+                        var alerts = template.alerts.get();
+                        alerts.push({type:'info', title: "Grabado"});
+
 
                     } else {
                         console.log("error returned from save")

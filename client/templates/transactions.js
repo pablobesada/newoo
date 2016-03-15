@@ -8,7 +8,7 @@ var listview_definition = [
     {label: 'moneda', field: 'currency'},
     {label: 'monto', field: 'amount'}];
 
-var view_definition = {'_sync': 'sync', number:'numero', 'date': 'fecha', 'description': 'descripcion', 'apartment': 'depto', 'currency': 'moneda', 'amount': 'monto'}
+var view_definition = {number:'numero', 'date': 'fecha', 'description': 'descripcion', 'apartment': 'depto', 'currency': 'moneda', 'amount': 'monto'}
 
 var Transaction = function() {}
 Transaction.prototype.collection_name ="Transactions";

@@ -8,7 +8,7 @@ var listview_definition = [
     {label: 'moneda', field: 'currency'},
     {label: 'monto', field: 'amount'}];
 
-var view_definition = {'number':'numero', 'date': 'fecha', 'description': 'descripcion', 'apartment': 'depto', 'currency': 'moneda', 'amount': 'monto'}
+var view_definition = {'_sync': 'sync', number:'numero', 'date': 'fecha', 'description': 'descripcion', 'apartment': 'depto', 'currency': 'moneda', 'amount': 'monto'}
 
 var Transaction = function() {}
 Transaction.prototype.collection_name ="Transactions";
@@ -73,6 +73,11 @@ Transaction.prototype.eventHandlers = {
     },
     "changed accounts.percent": function (record, rownr) {
         record.accounts[rownr].amount = record.amount * record.accounts[rownr].percent / 100.0;
+    },
+    "changed accounts.amount": function (record, rownr) {
+        var sum = _.reduce(record.accounts, function(memo, row){ return memo + row.amount; }, 0);
+        record.amount = sum;
+        //_.map(record.accounts, function (row) {row.percent = row.amount / record.amount * 100.0}) //mmm... es medio raro esto..
     },
     "saved": function (record) {
         console.log("saved");

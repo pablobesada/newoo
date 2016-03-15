@@ -132,14 +132,47 @@ ListViewDefinition = function(dbcollection_name, collection, record_template, re
 
 function decorateRecord(record, fieldDefs) {
     record._observer = new ReactiveVar(0);
-    record._observe_func = function(changes) {
-        if (record._observer) record._observer.set(record._observer.get()+1);
+    record._observe_func = {
+        set: function (target, key, value) {
+            //console.log(["proxy set: ", target, key, value]);
+            var res = (target[key] = value);
+            if (target._observer) target._observer.set(target._observer.get()+1);
+            return res;
+        }
     }
-    Object.observe(record, record._observe_func)
+
+    record = new Proxy(record, record._observe_func);
     fieldDefs.forEach(function (field) {
         if (field.type == 'array') {
             //decorateArray(record, field);
 
+            record[field.name]._observe_func = {
+                set: function (target, key, value) {
+                    //console.log(["proxy array set: ", target, key, value]);
+                    record._observer.set(record._observer.get() + 1);
+                    var res = (target[key] = value);
+                    if (key != 'length') {
+                        target[key] = decorateRecord(target[key], field.fields)
+                    }
+                    return res;
+                }
+            }
+            record[field.name] = new Proxy(record[field.name], record[field.name]._observe_func);
+            //Object.observe(record[field.name], record[field.name]._observe_func);
+            _(record[field.name]).each(function (row, idx) {
+                record[field.name][idx] = decorateRecord(row, field.fields);
+            })
+        }
+    });
+    return record;
+    /*
+    record._observe_func = function(changes) {
+        if (record._observer) record._observer.set(record._observer.get()+1);
+    }
+    Object.observe(record, record._observe_func);
+    fieldDefs.forEach(function (field) {
+        if (field.type == 'array') {
+            //decorateArray(record, field);
 
             record[field.name]._observe_func = function (changes) {
                 record._observer.set(record._observer.get()+1);
@@ -151,21 +184,18 @@ function decorateRecord(record, fieldDefs) {
             _(record[field.name]).each(function (row) {
                 decorateRecord(row, field.fields);
             })
-
-
-
         }
-    });
+    })*/
 }
 
 function undecorateRecord(record, fieldDefs) {
-    Object.unobserve(record, record._observe_func);
+    //Object.unobserve(record, record._observe_func);
     delete record._observer;
     delete record._observe_func;
 
     fieldDefs.forEach(function (field) {
         if (field.type == 'array') {
-            Object.unobserve(record[field.name], record[field.name]._observe_func);
+            //Object.unobserve(record[field.name], record[field.name]._observe_func);
             delete record[field.name]._observer
             delete record[field.name]._observe_func
             _(record[field.name]).each(function (row) {
@@ -173,6 +203,7 @@ function undecorateRecord(record, fieldDefs) {
             })
         }
     });
+    return record;
 }
 
 /*
@@ -210,7 +241,7 @@ function decorateRecord(record, fieldDefs) {
 function setWindowRecord(cur_rec, record, fieldsDef) {
     if (record) {
         if (!record._observer || !(record._observer instanceof ReactiveVar)) {
-            decorateRecord(record, fieldsDef);
+            record = decorateRecord(record, fieldsDef);
         }
     }
     cur_rec.set(record);
@@ -493,7 +524,7 @@ ViewDefinition = function(dbcollection_name, collection, record_template, record
                 }
             }
             if (canSave === true) {
-                undecorateRecord(record, record_class.prototype.fieldDefinitions);
+                record = undecorateRecord(record, record_class.prototype.fieldDefinitions);
                 //record.accounts[0].pepito = 'yuyu'
                 //setWindowRecord(template.cur_rec, null, record_class.prototype.fieldDefinitions)
                 Meteor.call("baserecord_save", dbcollection_name, record, function (error, result) {

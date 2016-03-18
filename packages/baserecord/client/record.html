@@ -94,8 +94,8 @@
                                                         <tr>
                                                             {{#each field in row_fields}}
                                                                 <td>
-                                                                    {{#let fvalue=(get_field_value row field.name)}}
-                                                                        {{> Template.dynamic template=(get_input_template field.type) data=(create_object fname=field.name ftype=field.type fvalue=fvalue readonly=false class='js-row-field' detail_name=detail_name row_nr=row_nr)}}
+                                                                    {{#let fvalue=(get_field_value row field.name) read_only=(get_field_readonly record detail_name row_nr field.name)}}
+                                                                        {{> Template.dynamic template=(get_input_template field.type) data=(create_object fname=field.name ftype=field.type fvalue=fvalue readonly=read_only class='js-row-field' detail_name=detail_name row_nr=row_nr)}}
                                                                     {{/let}}
                                                                 </td>
                                                             {{/each}}

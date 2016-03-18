@@ -43,7 +43,7 @@ Transaction.prototype.eventHandlers = {
                         var transRow = {};
                         transRow.user = aprow.user;
                         transRow.percent = aprow.percent;
-                        transRow.amount = record.amount * aprow.percent / 100.0;
+                        transRow.amount = (record.amount * aprow.percent / 100.0).toFixed(4);
                         record.accounts.push(transRow);
                     })
                 }
@@ -54,7 +54,7 @@ Transaction.prototype.eventHandlers = {
                 var transRow = {};
                 transRow.user = acc;
                 transRow.percent = 20.0;
-                transRow.amount = record.amount * transRow.percent / 100.0;
+                transRow.amount = (record.amount * transRow.percent / 100.0).toFixed(4);
                 record.accounts.push(transRow);
             })
 
@@ -62,21 +62,27 @@ Transaction.prototype.eventHandlers = {
     },
     "changed amount": function (record, fieldname) {
         record.accounts.forEach(function (row) {
-            row.amount = record.amount * row.percent / 100.0;
+            row.amount = (record.amount * row.percent / 100.0).toFixed(4);
         })
     },
     "canFocus number": function (record) {
         return false;
     },
+    "canFocus accounts.percent": function (record, rownr) {
+        console.log("canFocus accounts.percent")
+        if (record.apartment) return false;
+        return true;
+    },
+
     "changed accounts": function (record, rownr, fieldname) {
         console.log("changed accounts");
     },
     "changed accounts.percent": function (record, rownr) {
-        record.accounts[rownr].amount = record.amount * record.accounts[rownr].percent / 100.0;
+        record.accounts[rownr].amount = (record.amount * record.accounts[rownr].percent / 100.0).toFixed(4);
     },
     "changed accounts.amount": function (record, rownr) {
         var sum = _.reduce(record.accounts, function(memo, row){ return memo + row.amount; }, 0);
-        record.amount = sum;
+        record.amount = sum.toFixed(4);
         //_.map(record.accounts, function (row) {row.percent = row.amount / record.amount * 100.0}) //mmm... es medio raro esto..
     },
     "saved": function (record) {
@@ -88,7 +94,7 @@ Transaction.prototype.eventHandlers = {
         console.log(sumup);
         var currencies = ['ARS', 'USD']
         if (sumup.percent != 100.0) return "Los porcentajes deben sumar 100";
-        if (sumup.amount != record.amount) return "Los montos en las cuentas deben ser iguales al monto total";
+        if (Math.abs(sumup.amount - record.amount) > 0.0001) return "Los montos en las cuentas deben ser iguales al monto total";
         if (currencies.indexOf(record.currency) < 0) return "La moneda es incorrecta";
         if (record.apartment != '' && !Apartments.findOne({code: record.apartment})) return "El departamento es incorrecto";
         return true;
@@ -113,9 +119,11 @@ Transaction.prototype.eventHandlers = {
         }
     },
     "canAddRow accounts": function (record) {
+        if (record.apartment) return false;
         return true;
     },
     "canDeleteRow": function (record, fieldname) {
+        if (record.apartment) return false;
         if (fieldname == "accounts") {
             return true;
         }

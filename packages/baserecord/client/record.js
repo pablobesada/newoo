@@ -287,13 +287,22 @@ ViewDefinition = function(dbcollection_name, collection, record_template, record
                     return value;
             }
         }
-        instance.canFocus = function (rec, fn) {
-            var canfocus = true;
-            if (instance.event_handler) {
-                if (instance.event_handler["canFocus"]) canfocus = instance.event_handler["canFocus"](rec, fn);
-                if (canfocus && instance.event_handler["canFocus " + fn]) canfocus = instance.event_handler["canFocus " + fn](rec);
+        instance.canFocus = function (rec, fn, rownr, rfn) {
+            if (rfn == null) {
+                var canfocus = true;
+                if (instance.event_handler) {
+                    if (instance.event_handler["canFocus"]) canfocus = instance.event_handler["canFocus"](rec, fn);
+                    if (canfocus && instance.event_handler["canFocus " + fn]) canfocus = instance.event_handler["canFocus " + fn](rec);
+                }
+                return canfocus;
+            } else {
+                var canfocus = true;
+                if (instance.event_handler) {
+                    if (instance.event_handler["canFocus " + fn]) canfocus = instance.event_handler["canFocus " + fn](rec, fn, rownr, rfn);
+                    if (canfocus && instance.event_handler["canFocus " + fn + "." + rfn]) canfocus = instance.event_handler["canFocus " + fn + "." + rfn](rec, rownr);
+                }
+                return canfocus;
             }
-            return canfocus;
         }
 
         instance.autorun( function () {
@@ -366,8 +375,8 @@ ViewDefinition = function(dbcollection_name, collection, record_template, record
             rec._observer.get();
             return rec[fn];
         },
-        get_field_readonly: function (rec, fn) {
-            return !Template.instance().canFocus(rec, fn);
+        get_field_readonly: function (rec, fn, rownr, rfn) {
+            return !Template.instance().canFocus(rec, fn, rownr, rfn);
         },
         get_detail_records: function (rec, dn) {
             rec._observer.get();
@@ -440,6 +449,19 @@ ViewDefinition = function(dbcollection_name, collection, record_template, record
             var fn = event.target.name;
             return !template.canFocus(record, fn);
         },
+        "focus .js-row-field": function (event, template) {
+            var record = template.cur_rec.get();
+            var dn = event.target.attributes.detailname.value;
+            var rownr = event.target.attributes.row.value;
+            var fn = event.target.name;
+            record[dn][rownr][fn] = template.castValue(template.fields_map[dn][fn].type, event.target.value);
+            if (template.event_handler) {
+                if (template.event_handler["changed " +  dn]) template.event_handler["changed " + dn](record, rownr, fn);
+                if (template.event_handler["changed " + dn + "." + fn]) template.event_handler["changed " + dn + "." + fn](record, rownr)
+            }
+            //setWindowRecord(template.cur_rec, record, record_class.prototype.fieldDefinitions)
+        },
+
         "change .js-row-field": function (event, template) {
             var record = template.cur_rec.get();
             var dn = event.target.attributes.detailname.value;

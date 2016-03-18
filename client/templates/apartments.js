@@ -13,6 +13,10 @@ Apartment.prototype.fieldDefinitions = [
 ];
 
 
+var view_definition = {code:'codigo', 'address': 'direccion', 'administration_percent': '% administracion'}
+Apartment.prototype.view_definition = view_definition;
+
+
 listviewdef = BaseRecord.registerRecord(Apartment);
 var listview_definition = [
     {label:'codigo', field: 'code'},

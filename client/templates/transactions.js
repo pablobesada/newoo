@@ -43,7 +43,7 @@ Transaction.prototype.eventHandlers = {
                         var transRow = {};
                         transRow.user = aprow.user;
                         transRow.percent = aprow.percent;
-                        transRow.amount = (record.amount * aprow.percent / 100.0).toFixed(4);
+                        transRow.amount = record.amount * aprow.percent / 100.0;
                         record.accounts.push(transRow);
                     })
                 }
@@ -54,7 +54,7 @@ Transaction.prototype.eventHandlers = {
                 var transRow = {};
                 transRow.user = acc;
                 transRow.percent = 20.0;
-                transRow.amount = (record.amount * transRow.percent / 100.0).toFixed(4);
+                transRow.amount = record.amount * transRow.percent / 100.0;
                 record.accounts.push(transRow);
             })
 
@@ -62,7 +62,7 @@ Transaction.prototype.eventHandlers = {
     },
     "changed amount": function (record, fieldname) {
         record.accounts.forEach(function (row) {
-            row.amount = (record.amount * row.percent / 100.0).toFixed(4);
+            row.amount = record.amount * row.percent / 100.0;
         })
     },
     "canFocus number": function (record) {
@@ -78,11 +78,11 @@ Transaction.prototype.eventHandlers = {
         console.log("changed accounts");
     },
     "changed accounts.percent": function (record, rownr) {
-        record.accounts[rownr].amount = (record.amount * record.accounts[rownr].percent / 100.0).toFixed(4);
+        record.accounts[rownr].amount = record.amount * record.accounts[rownr].percent / 100.0;
     },
     "changed accounts.amount": function (record, rownr) {
         var sum = _.reduce(record.accounts, function(memo, row){ return memo + row.amount; }, 0);
-        record.amount = sum.toFixed(4);
+        record.amount = sum;
         //_.map(record.accounts, function (row) {row.percent = row.amount / record.amount * 100.0}) //mmm... es medio raro esto..
     },
     "saved": function (record) {

@@ -11,3 +11,5 @@ App.icons({
     'android_hdpi': 'resources/icons/android-icon-144x144.png',
     'android_xhdpi': 'resources/icons/android-icon-192x192.png'
 });
+
+App.accessRule("*");

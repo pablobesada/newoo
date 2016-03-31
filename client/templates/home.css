@@ -13,6 +13,8 @@ body {
   overflow-y: auto;
   margin: 0;
   padding: 0; }
+  .listview_content td {
+    cursor: pointer; }
 
 .listview_content > table {
   table-layout: fixed; }
@@ -79,5 +81,8 @@ body {
   font-weight: bolder; }
 .transactions_report #transactions .panel-body {
   padding: 0px; }
+
+.transactions_monthly_report tbody td {
+  cursor: pointer; }
 
 /*# sourceMappingURL=home.css.map */

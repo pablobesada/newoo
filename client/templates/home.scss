@@ -17,6 +17,7 @@ body {
   overflow-y: auto;
   margin: 0;
   padding: 0;
+  td { cursor: pointer; }
 }
 
 .listview_content > table {
@@ -92,7 +93,6 @@ body {
   table.scroll > tbody {
     overflow-y: auto;
   }
-
   table.scroll td, table.scroll th {
     border-left: 1px solid black;
     border-right: 1px solid black;
@@ -119,6 +119,10 @@ body {
   #transactions .panel-body {
     padding: 0px;
   }
+}
+
+.transactions_monthly_report {
+  tbody td { cursor: pointer; }
 }
 
 

@@ -23,6 +23,7 @@ Template.transactions_report.onCreated(function () {
         console.log(instance.apartment);
         var apartment = instance.apartment.get();
         var query = {date: {$gte: start, $lte: end}}
+        var options = {sort: {date: -1, number: -1}}
         if (apartment) query.apartment = apartment;
         var transactions_subscription = instance.subscribe('Transactions', {query: query});
         transactions_subscription.ready()
@@ -48,7 +49,7 @@ Template.transactions_report.helpers( {
         } else {
             query.apartment = '';
         }
-        return Transactions.find(query, {sort: {number:-1}});
+        return Transactions.find(query, {sort: {date: -1, number:-1}});
     },
     'currencies': ['ARS', 'USD'],
     'users': function () {

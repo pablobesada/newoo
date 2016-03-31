@@ -635,9 +635,9 @@ BaseRecord.createRecord = function(record_class){
 BaseRecord.addTab = function (title) {
     var nextTab = "tab_" + new Meteor.Collection.ObjectID()._str;
     if (!title) title = "New Tab ";
-    $('<li><a href="#' + nextTab + '" data-toggle="tab">' + title + '&nbsp;&nbsp;<span class="js-remove-tab" tab="'+nextTab+'">&times;</span></a></li>').insertAfter('#tabs li:nth-last-child(2)');
+    $('<li><a href="#' + nextTab + '" data-toggle="tab">' + title + '&nbsp;&nbsp;<span class="js-remove-tab" tab="'+nextTab+'">&times;</span></a></li>').insertAfter('#tabs li:last-child');
     $('<div class="tab-pane fade" id="' + nextTab + '"></div>').appendTo('.tab-content');
-    $('#tabs li:nth-last-of-type(2) a').tab('show');
+    $('#tabs li:last-of-type a').tab('show');
     return nextTab;
 };
 

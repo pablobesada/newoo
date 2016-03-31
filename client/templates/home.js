@@ -23,6 +23,8 @@ Template.home.events({
         template.$("#"+event.target.attributes.tab.value).remove()
         //console.log(event);
         template.$(event.target).parents("li").remove();
+        $('#tabs li:first-of-type a').tab('show');
+
     }
 });
 

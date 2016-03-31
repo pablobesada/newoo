@@ -7,7 +7,7 @@ Template.transactions_report.onCreated(function () {
     } else {
         instance.period = new ReactiveVar({
             start: moment().subtract(3, 'months').format('YYYY-MM-DD'),
-            end: moment().add(3, 'days').format('YYYY-MM-DD'),
+            end: moment("2050-12-31", "YYYY-MM-DD").format('YYYY-MM-DD'),
         });
     }
     instance.apartment = new ReactiveVar(instance.data.apartment || '');

@@ -276,15 +276,18 @@ ViewDefinition = function(dbcollection_name, collection, record_template, record
             }
 
         });
-        instance.castValue = function(type, value) {
+        instance.castValue = function(type, target) {
             switch (type)  {
                 case 'integer':
                 case 'real':
-                    return Number(value);
+                    return Number(target.value);
                     break;
                 case 'date':
+                    console.log(target);
+                    console.log(target.value);
+                    return moment(target.value, "DD/MM/YYYY").format("YYYY-MM-DD");
                 default:
-                    return value;
+                    return target.value;
             }
         }
         instance.canFocus = function (rec, fn, rownr, rfn) {
@@ -349,7 +352,8 @@ ViewDefinition = function(dbcollection_name, collection, record_template, record
     this.record_helpers = {
         afterRender: function () {
             Meteor.defer(function () {$('.input-group.date').datepicker({
-                format: "yyyy-mm-dd",
+                //format: "yyyy-mm-dd",
+                format: "dd/mm/yyyy",
                 autoclose: true,
             })});
         },
@@ -437,7 +441,8 @@ ViewDefinition = function(dbcollection_name, collection, record_template, record
         "change .js-record-field": function (event, template) {
             var record = template.cur_rec.get();
             var fn = event.target.name;
-            record[fn] = template.castValue(template.fields_map[fn].type, event.target.value);
+            //console.log("CCC: " + template.fields_map[fn] + "  " + event.target.value)
+            record[fn] = template.castValue(template.fields_map[fn].type, event.target);
             if (template.event_handler) {
                 if (template.event_handler["changed"]) template.event_handler["changed"](record, fn);
                 if (template.event_handler["changed " + event.target.name]) template.event_handler["changed " + fn](record)
@@ -454,7 +459,7 @@ ViewDefinition = function(dbcollection_name, collection, record_template, record
             var dn = event.target.attributes.detailname.value;
             var rownr = event.target.attributes.row.value;
             var fn = event.target.name;
-            record[dn][rownr][fn] = template.castValue(template.fields_map[dn][fn].type, event.target.value);
+            record[dn][rownr][fn] = template.castValue(template.fields_map[dn][fn].type, event.target);
             if (template.event_handler) {
                 if (template.event_handler["changed " +  dn]) template.event_handler["changed " + dn](record, rownr, fn);
                 if (template.event_handler["changed " + dn + "." + fn]) template.event_handler["changed " + dn + "." + fn](record, rownr)
@@ -467,7 +472,7 @@ ViewDefinition = function(dbcollection_name, collection, record_template, record
             var dn = event.target.attributes.detailname.value;
             var rownr = event.target.attributes.row.value;
             var fn = event.target.name;
-            record[dn][rownr][fn] = template.castValue(template.fields_map[dn][fn].type, event.target.value);
+            record[dn][rownr][fn] = template.castValue(template.fields_map[dn][fn].type, event.target);
             if (template.event_handler) {
                 if (template.event_handler["changed " +  dn]) template.event_handler["changed " + dn](record, rownr, fn);
                 if (template.event_handler["changed " + dn + "." + fn]) template.event_handler["changed " + dn + "." + fn](record, rownr)
@@ -666,3 +671,10 @@ Template.registerHelper('tab_id', function () {
     console.log($(Template.instance().firstNode).parent(".tab-pane").attr("id"));
     return $(Template.instance().firstNode).parent(".tab-pane").attr("id");
 })
+
+Template.registerHelper("formatDate", function (d) {
+    //console.log("AAA " + d)
+    var res = moment(d, "YYYY-MM-DD").format("DD/MM/YYYY");
+    //console.log("BBB " + res)
+    return res
+});

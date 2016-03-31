@@ -125,7 +125,7 @@
                                         {{#with trans}}
                                             <tr class="js-record-select">
                                                 <td>{{trans.number}}</td>
-                                                <td>{{trans.date}}</td>
+                                                <td>{{formatDate trans.date}}</td>
                                                 <td>{{trans.apartment}}</td>
                                                 {{#if isARS trans.currency}}
                                                     <td class="text-right">{{trans.amount}}</td>

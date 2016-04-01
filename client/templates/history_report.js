@@ -4,7 +4,7 @@ Template.history_report.onCreated(function () {
     var number = 0;
     if (instance.data && instance.data.record_number) number = instance.data.record_number;
     instance.params = new ReactiveVar({number: number});
-    instance.subscribe("Histories");
+    instance.subscribe("Histories", {}, {sort: {timestamp: 1}});
 });
 
 
@@ -15,7 +15,7 @@ Template.history_report.helpers( {
     'records': function () {
         var params = Template.instance().params.get();
         console.log(params.number);
-        return Histories.find({"record.number": parseInt(params.number)})
+        return Histories.find({"record.number": parseInt(params.number)}, {sort: {timestamp: 1}})
     }
 });
 

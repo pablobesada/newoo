@@ -109,7 +109,7 @@ ListViewDefinition = function(dbcollection_name, collection, record_template, re
             threshold = instance.$(container).offset().top + instance.$(container).height() - target.height() + 5;
             if (target.offset().top <= threshold) {
                 if (!target.data("visible")) {
-                    instance.limit.set(instance.limit.get() + 20);
+                    instance.limit.set(instance.limit.get() + 8000);
                     target.data("visible", true);
                 }
             } else {

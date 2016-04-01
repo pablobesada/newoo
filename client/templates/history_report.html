@@ -49,6 +49,7 @@
                                     {{#each rec in records}}
                                         {{#with rec}}
                                             <tr class="js-record-select">
+                                                <td>{{rec._id}}</td>
                                                 <td>{{rec.action}}</td>
                                                 <td>{{rec.timestamp}}</td>
                                                 <td>{{rec.user}}</td>

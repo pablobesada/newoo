@@ -23,7 +23,7 @@ function(doc) {
             lastamount = a;
             break;
     }
-    print(doc.timestamp, doc.record.number, doc.action, a, total[n], lastamount);
+    print(doc._id, doc.timestamp, doc.record.number, doc.action, a, total[n], lastamount);
     lastnumber = doc.record.number;
     lastaction = doc.record.action;
 }

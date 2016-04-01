@@ -93,7 +93,7 @@ Transaction.prototype.eventHandlers = {
         var sumup = record.accounts.reduce(function (row1, row2) {return {amount: row1.amount+row2.amount, percent: row1.percent+row2.percent}}, {amount: 0, percent: 0});
         console.log(sumup);
         var currencies = ['ARS', 'USD']
-        if (sumup.percent != 100.0) return "Los porcentajes deben sumar 100";
+        //if (sumup.percent != 100.0) return "Los porcentajes deben sumar 100";
         if (Math.abs(sumup.amount - record.amount) > 0.0005) return "Los montos en las cuentas deben ser iguales al monto total";
         if (currencies.indexOf(record.currency) < 0) return "La moneda es incorrecta";
         if (record.apartment != '' && !Apartments.findOne({code: record.apartment})) return "El departamento es incorrecto";

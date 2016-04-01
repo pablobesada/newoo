@@ -8,7 +8,7 @@ ListViewDefinition = function(dbcollection_name, collection, record_template, re
         console.log("collection name:" + collection._name);
         var instance = this;
         instance.cur_rec = cur_rec
-        instance.limit = new ReactiveVar(30);
+        instance.limit = new ReactiveVar(8000);
         instance.event_handler = record_class.prototype.eventHandlers;
         instance.fields_map = {};
         instance.columns = thisRecordDefinition.listview_definition;

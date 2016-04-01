@@ -19,7 +19,11 @@ function(doc) {
             lastamount = a;
             break;
         case 'U':
-            total[n] = total[n] - lastamount + a;
+            if (doc.record.number == lastnumber) {
+                total[n] = total[n] - lastamount + a;
+            } else {
+                total[n] = total[n] + a;
+            }
             lastamount = a;
             break;
     }

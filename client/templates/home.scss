@@ -110,11 +110,9 @@ body {
   table.balances {
     th, td  {
       background: orange;
-    }
-    tr>td:first-of-type  {
+      font-size: large;
       font-weight: bolder;
     }
-
   }
   #transactions .panel-body {
     padding: 0px;

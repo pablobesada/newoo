@@ -31,4 +31,13 @@ function(doc) {
     lastnumber = doc.record.number;
     lastaction = doc.record.action;
 }
+
+function sumTotals(total) {
+var tt = 0.0
+  for (var k in total) {
+    tt += total[k]
+  }
+  print(tt)
+}
+
 */

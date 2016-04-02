@@ -76,8 +76,8 @@ body {
     font-weight: bolder; }
 
 .transactions_report table.balances th, .transactions_report table.balances td {
-  background: orange; }
-.transactions_report table.balances tr > td:first-of-type {
+  background: orange;
+  font-size: large;
   font-weight: bolder; }
 .transactions_report #transactions .panel-body {
   padding: 0px; }

@@ -69,14 +69,13 @@ Transaction.prototype.eventHandlers = {
         return false;
     },
     "canFocus accounts.percent": function (record, rownr) {
-        console.log("canFocus accounts.percent")
         if (record.apartment) return false;
         return true;
     },
 
     "changed accounts": function (record, rownr, fieldname) {
-        console.log("changed accounts");
     },
+
     "changed accounts.percent": function (record, rownr) {
         record.accounts[rownr].amount = record.amount * record.accounts[rownr].percent / 100.0;
     },
@@ -93,31 +92,36 @@ Transaction.prototype.eventHandlers = {
         var sumup = record.accounts.reduce(function (row1, row2) {return {amount: row1.amount+row2.amount, percent: row1.percent+row2.percent}}, {amount: 0, percent: 0});
         console.log(sumup);
         var currencies = ['ARS', 'USD']
-        //if (sumup.percent != 100.0) return "Los porcentajes deben sumar 100";
+        if (sumup.percent != 100.0) return "Los porcentajes deben sumar 100";
         if (Math.abs(sumup.amount - record.amount) > 0.0005) return "Los montos en las cuentas deben ser iguales al monto total";
         if (currencies.indexOf(record.currency) < 0) return "La moneda es incorrecta";
         if (record.apartment != '' && !Apartments.findOne({code: record.apartment})) return "El departamento es incorrecto";
         return true;
     },
+
     "beforeSave": function (record) {
         if (!record.number) {
             record.number = Transactions.findOne({}, {fields:{number:1}, sort: {number: -1}, limit :1}).number + 1;
         }
     },
+
     "canDelete": function (record) {
         return true;
     },
+
     "onCreate": function (record) {
         //newRecord.date = moment().format("%Y-%m-%d")
         record.date = moment().format("YYYY-MM-DD")
         record.user = Meteor.user().username;
         record.currency = 'ARS'
     },
+
     "canAddRow": function (record, fieldname) {
         if (fieldname == "accounts") {
             return true;
         }
     },
+
     "canAddRow accounts": function (record) {
         if (record.apartment) return false;
         return true;

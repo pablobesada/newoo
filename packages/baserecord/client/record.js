@@ -8,7 +8,7 @@ ListViewDefinition = function(dbcollection_name, collection, record_template, re
         console.log("collection name:" + collection._name);
         var instance = this;
         instance.cur_rec = cur_rec
-        instance.limit = new ReactiveVar(8000);
+        instance.limit = new ReactiveVar(30);
         instance.event_handler = record_class.prototype.eventHandlers;
         instance.fields_map = {};
         instance.columns = thisRecordDefinition.listview_definition;
@@ -109,7 +109,7 @@ ListViewDefinition = function(dbcollection_name, collection, record_template, re
             threshold = instance.$(container).offset().top + instance.$(container).height() - target.height() + 5;
             if (target.offset().top <= threshold) {
                 if (!target.data("visible")) {
-                    instance.limit.set(instance.limit.get() + 8000);
+                    instance.limit.set(instance.limit.get() + 20);
                     target.data("visible", true);
                 }
             } else {
@@ -376,14 +376,14 @@ ViewDefinition = function(dbcollection_name, collection, record_template, record
             return Template.instance().cur_rec.get();
         },
         get_field_value: function (rec, fn) {
-            rec._observer.get();
+            if (rec._observer) rec._observer.get();
             return rec[fn];
         },
         get_field_readonly: function (rec, fn, rownr, rfn) {
             return !Template.instance().canFocus(rec, fn, rownr, rfn);
         },
         get_detail_records: function (rec, dn) {
-            rec._observer.get();
+            if (rec._observer) rec._observer.get();
             //return [rec[dn][0]];
             return rec[dn];
         },
@@ -459,12 +459,7 @@ ViewDefinition = function(dbcollection_name, collection, record_template, record
             var dn = event.target.attributes.detailname.value;
             var rownr = event.target.attributes.row.value;
             var fn = event.target.name;
-            record[dn][rownr][fn] = template.castValue(template.fields_map[dn][fn].type, event.target);
-            if (template.event_handler) {
-                if (template.event_handler["changed " +  dn]) template.event_handler["changed " + dn](record, rownr, fn);
-                if (template.event_handler["changed " + dn + "." + fn]) template.event_handler["changed " + dn + "." + fn](record, rownr)
-            }
-            //setWindowRecord(template.cur_rec, record, record_class.prototype.fieldDefinitions)
+            return !template.canFocus(record, dn, rownr, fn);
         },
 
         "change .js-row-field": function (event, template) {
@@ -475,7 +470,9 @@ ViewDefinition = function(dbcollection_name, collection, record_template, record
             record[dn][rownr][fn] = template.castValue(template.fields_map[dn][fn].type, event.target);
             if (template.event_handler) {
                 if (template.event_handler["changed " +  dn]) template.event_handler["changed " + dn](record, rownr, fn);
-                if (template.event_handler["changed " + dn + "." + fn]) template.event_handler["changed " + dn + "." + fn](record, rownr)
+                if (template.event_handler["changed " + dn + "." + fn]) {
+                    template.event_handler["changed " + dn + "." + fn](record, rownr)
+                }
             }
             //setWindowRecord(template.cur_rec, record, record_class.prototype.fieldDefinitions)
         },
@@ -525,11 +522,16 @@ ViewDefinition = function(dbcollection_name, collection, record_template, record
         },
         "click .js-save-record": function (event, template) {
             // Prevent default browser form submit
+            console.log("1")
             event.preventDefault();
+            console.log("2")
             record = template.cur_rec.get();
+            console.log("3")
             // Insert a task into the collection
             if (!record) return;
+            console.log("4")
             var canSave = true;
+            console.log("2")
             if (template.event_handler) {
                 if (template.event_handler["canSave"]) canSave = template.event_handler["canSave"](record);
                 console.log(canSave)
@@ -552,21 +554,15 @@ ViewDefinition = function(dbcollection_name, collection, record_template, record
             }
             if (canSave === true) {
                 record = undecorateRecord(record, record_class.prototype.fieldDefinitions);
-                //record.accounts[0].pepito = 'yuyu'
-                //setWindowRecord(template.cur_rec, null, record_class.prototype.fieldDefinitions)
                 Meteor.call("baserecord_save", dbcollection_name, record, function (error, result) {
-
                     if (!error && result.ok) {
-
                         console.log("result ok: settings current_record with sync: " + result.record._sync)
                         if (template.event_handler) {
                             if (template.event_handler["saved"]) template.event_handler["saved"](record);
                         }
-                        setWindowRecord(template.cur_rec, result.record, record_class.prototype.fieldDefinitions)
+                        setWindowRecord(template.cur_rec, result.record, record_class.prototype.fieldDefinitions);
                         var alerts = template.alerts.get();
                         alerts.push({type:'info', title: "Grabado"});
-
-
                     } else {
                         console.log("error returned from save")
                         console.log(arguments);

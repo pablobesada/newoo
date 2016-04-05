@@ -82,7 +82,13 @@ Transaction.prototype.eventHandlers = {
     "changed accounts.amount": function (record, rownr) {
         var sum = _.reduce(record.accounts, function(memo, row){ return memo + row.amount; }, 0);
         record.amount = sum;
-        //_.map(record.accounts, function (row) {row.percent = row.amount / record.amount * 100.0}) //mmm... es medio raro esto..
+        _.map(record.accounts, function (row) {
+            if (record.amount) {
+                row.percent = row.amount / record.amount * 100.0
+            } else {
+                row.percent = 0.00
+            }
+        }) //mmm... es medio raro esto..
     },
     "saved": function (record) {
         console.log("saved");

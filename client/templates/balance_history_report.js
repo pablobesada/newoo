@@ -1,5 +1,5 @@
 
-Template.history_report.onCreated(function () {
+Template.balance_history_report.onCreated(function () {
     var instance =  this;
     var number = 0;
     if (instance.data && instance.data.record_number) number = instance.data.record_number;
@@ -8,10 +8,10 @@ Template.history_report.onCreated(function () {
 });
 
 
-Template.history_report.onRendered(function () {
+Template.balance_history_report.onRendered(function () {
 })
 
-Template.history_report.helpers( {
+Template.balance_history_report.helpers( {
     'records': function () {
         var params = Template.instance().params.get();
         console.log(params.number);
@@ -19,7 +19,7 @@ Template.history_report.helpers( {
     }
 });
 
-Template.history_report.events( {
+Template.balance_history_report.events( {
     'submit .js-history_report-form': function (event, template) {
         event.preventDefault();
         var params = template.params.get();

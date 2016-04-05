@@ -1,9 +1,10 @@
 
 Template.balance_history_report.onCreated(function () {
     var instance =  this;
-    var number = 0;
-    if (instance.data && instance.data.record_number) number = instance.data.record_number;
-    instance.params = new ReactiveVar({number: number});
+    var timestamp = '2020-12-31T00:00:00';
+    instance.params = new ReactiveVar({timestamp: timestamp});
+    instance.balances = new ReactiveVar({});
+    instance.alerts = new ReactiveVar([]);
     instance.subscribe("Histories", {}, {sort: {timestamp: 1}});
 });
 
@@ -12,19 +13,46 @@ Template.balance_history_report.onRendered(function () {
 })
 
 Template.balance_history_report.helpers( {
-    'records': function () {
-        var params = Template.instance().params.get();
-        console.log(params.number);
-        return Histories.find({"record.number": parseInt(params.number)}, {sort: {timestamp: 1}})
+    'balances': function () {
+        console.log("en balances")
+        var template = Template.instance();
+        var params = template.params.get();
+    },
+    'getAmount': function (user, currency) {
+        var template = Template.instance();
+        var balances = template.balances.get();
+        if (!balances[user] || !balances[user][currency]) return 'N/A';
+        return template.balances.get()[user][currency].toFixed(2);
+    },
+    'timestamp': function () {
+        return Template.instance().params.get().timestamp;
+    },
+    get_alerts: function () {
+        return Template.instance().alerts.get();
     }
+
 });
 
 Template.balance_history_report.events( {
     'submit .js-history_report-form': function (event, template) {
         event.preventDefault();
         var params = template.params.get();
-        params.number = template.$('input[name=record_number]').val();
+        params.timestamp = template.$('input[name=timestamp]').val();
+        console.log(params.timestamp)
         template.params.set(params);
+        Meteor.call("getHistoryBalance", params.timestamp, false, function (error, result){
+            console.log(result)
+            if (result.ok) {
+                console.log(result.balances)
+                template.balances.set(result.balances)
+            } else {
+                var alerts = template.alerts.get();
+                alerts.push({type:'danger', title: result.error});
+                template.alerts.set(alerts);
+            }
+
+        });
+
     },
     'click [data-toggle=collapse]': function (event, template) {
         event.preventDefault();

@@ -9,7 +9,7 @@
                         <li><a data-toggle="tab" href="#tab2">Informe Mensual</a></li>
                         <li><a data-toggle="tab" href="#tab3">Transactions</a></li>
                         <li><a data-toggle="tab" href="#tab4">Apartments</a></li>
-                        <!--li><a data-toggle="tab" href="#tab5">Balance History</a></li-->
+                        <li><a data-toggle="tab" href="#tab5">Balance History</a></li>
                         <!--li><a href="#" id="addTab">+</a></li-->
                     </ul>
                 </div>
@@ -31,9 +31,9 @@
             <div class="tab-pane fade in" id="tab4">
                 {{> Template.dynamic template='Apartments_listview'}}
             </div>
-            <!--div class="tab-pane fade in" id="tab5">
+            <div class="tab-pane fade in" id="tab5">
                 {{> Template.dynamic template='balance_history_report'}}
-            </div-->
+            </div>
         </div>
     {{else}}
         <div class="container-fluid container-table loginpage">

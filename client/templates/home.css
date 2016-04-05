@@ -75,14 +75,15 @@ body {
     background: lightgray;
     font-weight: bolder; }
 
-.transactions_report table.balances th, .transactions_report table.balances td {
-  background: orange;
-  font-size: large;
-  font-weight: bolder; }
 .transactions_report #transactions .panel-body {
   padding: 0px; }
 
 .transactions_monthly_report tbody td {
   cursor: pointer; }
+
+table.balances th, table.balances td {
+  background: orange;
+  font-size: large;
+  font-weight: bolder; }
 
 /*# sourceMappingURL=home.css.map */

@@ -107,13 +107,6 @@ body {
 }
 
 .transactions_report {
-  table.balances {
-    th, td  {
-      background: orange;
-      font-size: large;
-      font-weight: bolder;
-    }
-  }
   #transactions .panel-body {
     padding: 0px;
   }
@@ -121,6 +114,14 @@ body {
 
 .transactions_monthly_report {
   tbody td { cursor: pointer; }
+}
+
+table.balances {
+  th, td  {
+    background: orange;
+    font-size: large;
+    font-weight: bolder;
+  }
 }
 
 

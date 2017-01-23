@@ -132,11 +132,11 @@
                                                     <td>{{formatDate trans.date}}</td>
                                                     <td>{{trans.apartment}}</td>
                                                     {{#if isARS trans.currency}}
-                                                        <td class="text-right">{{get_amount trans}}</td>
+                                                        <td class="text-right">{{get_trans_amount trans}}</td>
                                                         <td></td>
                                                     {{else}}
                                                         <td></td>
-                                                        <td class="text-right">{{get_amount trans}}</td>
+                                                        <td class="text-right">{{get_trans_amount trans}}</td>
                                                     {{/if}}
                                                     <td>{{trans.user}}</td>
                                                     <td>{{trans.description}}</td>

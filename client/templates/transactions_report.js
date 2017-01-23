@@ -94,7 +94,7 @@ Template.transactions_report.helpers( {
         return false;
     },
 
-    'get_amount': function (transaction) {
+    'get_trans_amount': function (transaction) {
         var acc = Template.instance().account.get();
         if (!acc || !transaction.accounts) return transaction.amount;
         for (var i=0;i<transaction.accounts.length; i++) {

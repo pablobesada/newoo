@@ -11,6 +11,7 @@ Template.transactions_report.onCreated(function () {
         });
     }
     instance.apartment = new ReactiveVar(instance.data.apartment || '');
+    instance.account = new ReactiveVar(instance.data.account || null);
     console.log("instance");
     console.log(instance);
     account_balances_subscription = instance.subscribe('Account_Balances');
@@ -22,9 +23,11 @@ Template.transactions_report.onCreated(function () {
         console.log(instance);
         console.log(instance.apartment);
         var apartment = instance.apartment.get();
+        var account = instance.account.get();
+        console.log(apartment);
         var query = {date: {$gte: start, $lte: end}}
         var options = {sort: {date: -1, number: -1}}
-        if (apartment) query.apartment = apartment;
+        if (apartment && apartment != 'ALL') query.apartment = apartment;
         var transactions_subscription = instance.subscribe('Transactions', {query: query});
         transactions_subscription.ready()
     })
@@ -43,11 +46,13 @@ Template.transactions_report.helpers( {
         var start = Template.instance().period.get().start;
         var end = Template.instance().period.get().end;
         var apartment = Template.instance().apartment.get();
+        var account = Template.instance().apartment.get();
         var query = {date: {$gte: start, $lte: end}}
-        if (apartment) {
+        if (apartment && apartment != 'ALL') {
             query.apartment = apartment;
+        } else if (apartment == 'ALL') {
         } else {
-            query.apartment = '';
+                query.apartment = '';
         }
         return Transactions.find(query, {sort: {date: -1, number:-1}});
     },
@@ -76,6 +81,28 @@ Template.transactions_report.helpers( {
     'cur_apartment': function () {
         return Template.instance().apartment.get();
     },
+    'cur_account': function () {
+        return Template.instance().account.get();
+    },
+    'match_account': function (transaction) {
+        var acc = Template.instance().account.get();
+        if (!acc || !transaction.accounts) return true;
+        console.log(acc, transaction)
+        for (var i=0;i<transaction.accounts.length; i++) {
+            if (transaction.accounts[i].user == acc && transaction.accounts[i].amount != 0) return true;
+        }
+        return false;
+    },
+
+    'get_amount': function (transaction) {
+        var acc = Template.instance().account.get();
+        if (!acc || !transaction.accounts) return transaction.amount;
+        for (var i=0;i<transaction.accounts.length; i++) {
+            if (transaction.accounts[i].user == acc) return transaction.accounts[i].amount;
+        }
+        return null
+    },
+
     'isARS': function (currency) {
         return currency == 'ARS'
     },
@@ -121,6 +148,7 @@ Template.transactions_report.events( {
         };
         template.period.set(period);
         template.apartment.set(template.$('input[name=apartment]').val());
+        template.account.set(template.$('input[name=account]').val());
     },
     'click [data-toggle=collapse]': function (event, template) {
         event.preventDefault();

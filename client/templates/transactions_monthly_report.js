@@ -5,7 +5,7 @@ Template.transactions_monthly_report.onCreated(function () {
     var instance = this;
     console.log("monthly")
     instance.period = new ReactiveVar({
-        start: moment().subtract(12, 'months').startOf('month').format('YYYY-MM-DD'),
+        start: moment().subtract(16, 'months').startOf('month').format('YYYY-MM-DD'),
         end: moment().endOf('month').format('YYYY-MM-DD'),
     });
     var apartments_subscription = instance.subscribe('Apartments');

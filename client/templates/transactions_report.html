@@ -59,7 +59,9 @@
                                         <a href="#">{{ap.code}}</a>
                                     </li>
                                 {{/each}}
-
+                                <li class="js-apartment apartment {{#if isCurrentApartment 'ALL'}}active{{/if}}" apartment_code="ALL">
+                                    <a href="#">Todos</a>
+                                </li>
                             </ul>
                         </div>
                     </div>
@@ -83,9 +85,10 @@
                                 <input type="text" class="input-sm form-control" name="start" value="{{start}}"/>
                                 <span class="input-group-addon">to</span>
                                 <input type="text" class="input-sm form-control" name="end" value="{{end}}"/>
-                            </div>
-                            <input type="text" class="input-sm form-control" name="apartment"
-                                   value="{{cur_apartment}}"/>
+                            </div><br/>
+                            Departmento <input type="text" class="input-sm form-control" name="apartment"
+                                   value="{{cur_apartment}}"/><br/>
+                            Cuenta <input type="text" class="input-sm form-control" name="account" value="{{account}}"/><br/>
                             <input type="submit"/>
                         </form>
                     </div>
@@ -122,22 +125,24 @@
                                 <table class="table table-striped table-hover">
                                     <tbody>
                                     {{#each trans in transactions}}
-                                        {{#with trans}}
-                                            <tr class="js-record-select">
-                                                <td>{{trans.number}}</td>
-                                                <td>{{formatDate trans.date}}</td>
-                                                <td>{{trans.apartment}}</td>
-                                                {{#if isARS trans.currency}}
-                                                    <td class="text-right">{{trans.amount}}</td>
-                                                    <td></td>
-                                                {{else}}
-                                                    <td></td>
-                                                    <td class="text-right">{{trans.amount}}</td>
-                                                {{/if}}
-                                                <td>{{trans.user}}</td>
-                                                <td>{{trans.description}}</td>
-                                            </tr>
-                                        {{/with}}
+                                        {{#if match_account trans}}
+                                            {{#with trans}}
+                                                <tr class="js-record-select">
+                                                    <td>{{trans.number}}</td>
+                                                    <td>{{formatDate trans.date}}</td>
+                                                    <td>{{trans.apartment}}</td>
+                                                    {{#if isARS trans.currency}}
+                                                        <td class="text-right">{{get_amount trans}}</td>
+                                                        <td></td>
+                                                    {{else}}
+                                                        <td></td>
+                                                        <td class="text-right">{{get_amount trans}}</td>
+                                                    {{/if}}
+                                                    <td>{{trans.user}}</td>
+                                                    <td>{{trans.description}}</td>
+                                                </tr>
+                                            {{/with}}
+                                        {{/if}}
                                     {{/each}}
                                     </tbody>
                                 </table>

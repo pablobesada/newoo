@@ -96,9 +96,8 @@ Transaction.prototype.eventHandlers = {
     "canSave": function (record) {
         if (Meteor.user().username != 'PDB' && moment().diff(moment(record.date, "YYYY-MM-DD"), 'days') > 15) return "No se puede modificar porque el registro tiene mas de 15 dias";
         var sumup = record.accounts.reduce(function (row1, row2) {return {amount: row1.amount+row2.amount, percent: row1.percent+row2.percent}}, {amount: 0, percent: 0});
-        console.log(sumup);
         var currencies = ['ARS', 'USD']
-        if (sumup.percent != 100.0) return "Los porcentajes deben sumar 100";
+        if (sumup.percent != 100.0 && !(sumup.percent == 0.0 && record.apartment === '')) return "Los porcentajes deben sumar 100 o 0"
         if (Math.abs(sumup.amount - record.amount) > 0.0005) return "Los montos en las cuentas deben ser iguales al monto total";
         if (currencies.indexOf(record.currency) < 0) return "La moneda es incorrecta";
         if (record.apartment != '' && !Apartments.findOne({code: record.apartment})) return "El departamento es incorrecto";

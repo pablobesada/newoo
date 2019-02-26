@@ -120,7 +120,7 @@ Template.transactions_monthly_report.helpers( {
         return Template.instance().period.get().end;
     },
     'get_apartments': function () {
-        return Apartments.find({},{sort:{code:1}})
+        return Apartments.find({ code: { $nin: [ 'GARAGE', 'DVE-CO7' ] } },{sort:{code:1}})
     },
     'isCurrentMode': function (mode) {
         return mode == Template.instance().mode.get();
